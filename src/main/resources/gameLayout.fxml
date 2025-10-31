@@ -6,21 +6,47 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <?import java.net.URL?>
-<Pane fx:controller="com.comp2042.GuiController"
-      xmlns:fx="http://javafx.com/fxml">
-    <GridPane fx:id="brickPanel" vgap="1" hgap="1"/>
-    <BorderPane styleClass="gameBoard" fx:id="gameBoard">
-        <center>
-            <GridPane fx:id="gamePanel" hgap="1" vgap="1" layoutY="30" layoutX="40"/>
-        </center>
-    </BorderPane>
 
-    <Group fx:id="groupNotification" layoutX="14" layoutY="203">
-        <VBox alignment="CENTER">
-            <GameOverPanel fx:id="gameOverPanel"/>
-        </VBox>
-    </Group>
+<!--Pane does not auto resize the game so i am changing to stackPane which will center my tetris board automatically and allow resizing-->
+<!--StackPane is my black background which fills the entire window-->
+<?import javafx.scene.image.ImageView?>
+<StackPane fx:controller="com.comp2042.GuiController"
+           xmlns:fx="http://javafx.com/fxml"
+           styleClass="rootPane">
+    <ImageView fx:id="backgroundImage"
+               StackPane.alignment="CENTER"
+               preserveRatio="false"
+               smooth="true"
+               fitWidth="500"
+               fitHeight="800"
+               styleClass="backgroundImage" />
+
+  <VBox alignment="CENTER"> <!--Anchor pane is my tetris area which stays centered and locked-->
+       <AnchorPane fx:id="rootContainer"
+                   prefWidth="500" prefHeight="800"
+                   minWidth="500" minHeight="800"
+                   maxWidth="500" maxHeight="800"
+                   styleClass="gameContainer" >
+        <GridPane fx:id="brickPanel" vgap="1" hgap="1" layoutX="600" layoutY="100"/>
+        <BorderPane styleClass="gameBoard" fx:id="gameBoard"
+                AnchorPane.topAnchor="0"
+                AnchorPane.leftAnchor="0"
+                AnchorPane.rightAnchor="0"
+                AnchorPane.bottomAnchor="0" >
+          <center>
+            <GridPane fx:id="gamePanel" hgap="1" vgap="1" alignment="CENTER"/><!--aligning game panel to center-->
+         </center>
+        </BorderPane>
+
+         <Group fx:id="groupNotification" layoutX="14" layoutY="203">
+            <VBox alignment="CENTER">
+               <GameOverPanel fx:id="gameOverPanel"/>
+           </VBox>
+         </Group>
+    </AnchorPane>
+  </VBox>
+
     <stylesheets>
         <URL value="@window_style.css"/>
     </stylesheets>
-</Pane>
+</StackPane>
