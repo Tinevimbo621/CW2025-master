@@ -39,6 +39,10 @@ public class GuiController implements Initializable {
     @FXML
     private GameOverPanel gameOverPanel;
 
+    @FXML
+    // for next brick in the side panel
+    private GridPane nextBrickPanel;
+
     private Rectangle[][] displayMatrix;
 
     private InputEventListener eventListener;
@@ -218,6 +222,22 @@ public class GuiController implements Initializable {
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
     }
+    // method to show next brick
+    public void updateNextShapePreview(int[][] nextShapeMatrix) {
+        nextBrickPanel.getChildren().clear();
+        int cellSize = 20;
+
+        for (int row = 0; row < nextShapeMatrix.length; row++) {
+            for (int col = 0; col < nextShapeMatrix[row].length; col++) {
+                if (nextShapeMatrix[row][col] != 0) {
+                    Rectangle block = new Rectangle(cellSize, cellSize, Color.CYAN);
+                    nextBrickPanel.add(block, col, row);
+                }
+            }
+        }
+    }
+
+
 
     public void pauseGame(ActionEvent actionEvent) {
         gamePanel.requestFocus();

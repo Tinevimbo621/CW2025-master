@@ -20,8 +20,9 @@
                fitWidth="500"
                fitHeight="800"
                styleClass="backgroundImage" />
-
-  <VBox alignment="CENTER"> <!--Anchor pane is my tetris area which stays centered and locked-->
+  <!--Adding Hbox so my side panel and game lie next to each other-->
+  <HBox alignment="CENTER" spacing="40">
+      <!--Anchor pane is my tetris area which stays centered and locked-->
        <AnchorPane fx:id="rootContainer"
                    prefWidth="500" prefHeight="800"
                    minWidth="500" minHeight="800"
@@ -34,8 +35,16 @@
                 AnchorPane.rightAnchor="0"
                 AnchorPane.bottomAnchor="0" >
           <center>
-            <GridPane fx:id="gamePanel" hgap="1" vgap="1" alignment="CENTER"/><!--aligning game panel to center-->
+              <GridPane fx:id="gamePanel"
+                        hgap="1" vgap="1"
+                        layoutX="50" layoutY="50"
+                        AnchorPane.leftAnchor="0"
+                        AnchorPane.rightAnchor="0"
+                        AnchorPane.topAnchor="0"
+                        AnchorPane.bottomAnchor="0"
+                        alignment="CENTER"/><!--aligning game panel to center-->
          </center>
+
         </BorderPane>
 
          <Group fx:id="groupNotification" layoutX="14" layoutY="203">
@@ -44,7 +53,24 @@
            </VBox>
          </Group>
     </AnchorPane>
-  </VBox>
+      <VBox fx:id="sidePanel" alignment="TOP_CENTER" spacing="30">
+          <Label text="Score:" styleClass="scoreClass"/>
+          <Label fx:id="scoreLabel" text="0" styleClass="scoreClass"/>
+
+          <Label text="Next:" styleClass="nextBrickLabel"/>
+          <GridPane fx:id="nextBrickPanel"
+                    alignment="CENTER"
+                    prefWidth="100" prefHeight="100"
+                    hgap="2" vgap="2"
+                    style="-fx-border-color: white; -fx-border-width: 2;"/>
+
+          <Label text="Level:" styleClass="scoreClass"/>
+          <Label fx:id="levelLabel" text="1" styleClass="scoreClass"/>
+      </VBox>
+
+  </HBox>
+
+
 
     <stylesheets>
         <URL value="@window_style.css"/>

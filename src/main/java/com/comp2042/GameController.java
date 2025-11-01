@@ -24,12 +24,15 @@ public class GameController implements InputEventListener {
             if (clearRow.getLinesRemoved() > 0) {
                 board.getScore().add(clearRow.getScoreBonus());
             }
+
+
+
             if (board.createNewBrick()) {
                 viewGuiController.gameOver();
+            } else {
+                viewGuiController.updateNextShapePreview(board.getViewData().getNextBrickData());
             }
-
             viewGuiController.refreshGameBackground(board.getBoardMatrix());
-
         } else {
             if (event.getEventSource() == EventSource.USER) {
                 board.getScore().add(1);
