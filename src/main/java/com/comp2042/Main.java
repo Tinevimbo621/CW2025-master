@@ -26,9 +26,9 @@ public class Main extends Application {
         //making my stage resizable
         primaryStage.setResizable(true);
         primaryStage.setMinHeight(800);
-        primaryStage.setMinWidth(500);
+        primaryStage.setMinWidth(800);
         //removed Scene height and width
-        Scene scene = new Scene(root,500, 800);
+        Scene scene = new Scene(root,800, 800);
         primaryStage.setScene(scene);
         primaryStage.show();
         new GameController(c);

@@ -104,7 +104,7 @@ public class SimpleBoard implements Board {
         }
         // Assign it before intersecting
             brickRotator.setBrick(currentBrick);
-            currentOffset = new Point(4, 0); // start higher on the board
+            currentOffset = new Point(6, 0); // start higher on the board
 
             int[][] shape = brickRotator.getCurrentShape();
 
@@ -169,4 +169,6 @@ public class SimpleBoard implements Board {
         score.reset();
         createNewBrick();
     }
+
+
 }

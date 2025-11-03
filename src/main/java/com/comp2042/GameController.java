@@ -1,8 +1,8 @@
 package com.comp2042;
 
 public class GameController implements InputEventListener {
-
-    private Board board = new SimpleBoard(25, 10);
+//increasing game board from 25*10 to 39 * 23 so the block can reach all boarders
+    private Board board = new SimpleBoard(39, 23);
 
     private final GuiController viewGuiController;
 
@@ -66,3 +66,4 @@ public class GameController implements InputEventListener {
         viewGuiController.refreshGameBackground(board.getBoardMatrix());
     }
 }
+

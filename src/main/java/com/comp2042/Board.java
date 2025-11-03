@@ -1,6 +1,6 @@
 package com.comp2042;
 
-public interface  Board {
+public interface   Board {
 
     boolean moveBrickDown();
 
