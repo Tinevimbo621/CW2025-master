@@ -13,13 +13,7 @@
 <StackPane fx:controller="com.comp2042.GuiController"
            xmlns:fx="http://javafx.com/fxml"
            styleClass="rootPane">
-    <ImageView fx:id="backgroundImage"
-               StackPane.alignment="CENTER"
-               preserveRatio="false"
-               smooth="true"
-               fitWidth="500"
-               fitHeight="800"
-               styleClass="backgroundImage" />
+
   <!--Adding Hbox so my side panel and game lie next to each other-->
   <HBox alignment="CENTER" spacing="40">
       <!--Anchor pane is my tetris area which stays centered and locked-->

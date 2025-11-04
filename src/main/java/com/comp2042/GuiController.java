@@ -10,7 +10,10 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Group;
+import javafx.scene.control.Label;
 import javafx.scene.effect.Reflection;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
@@ -27,6 +30,7 @@ public class GuiController implements Initializable {
 
     private static final int BRICK_SIZE = 20;
 
+
     @FXML
     private GridPane gamePanel;
 
@@ -42,6 +46,11 @@ public class GuiController implements Initializable {
     @FXML
     // for next brick in the side panel
     private GridPane nextBrickPanel;
+    // to show score on the side panel
+    @FXML
+    private Label scoreLabel ;
+    //to show the image background
+
 
     private Rectangle[][] displayMatrix;
 
@@ -206,8 +215,9 @@ public class GuiController implements Initializable {
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
     }
-
-    public void bindScore(IntegerProperty integerProperty) {
+// added scoreLabel line to show score in the side panel
+    public void bindScore(IntegerProperty scoreProperty) {
+        scoreLabel.textProperty().bind(scoreProperty.asString("%d"));
     }
 
     public void gameOver() {
@@ -239,7 +249,6 @@ public class GuiController implements Initializable {
             }
         }
     }
-
 
 
     public void pauseGame(ActionEvent actionEvent) {

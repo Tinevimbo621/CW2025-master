@@ -1,6 +1,11 @@
-
+.gameContainer{
+  -fx-background-image: url("background_image.png");
+    -fx-background-size: cover;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+    }
 .rootPane{
-   -fx-background-color: black;
+   -fx-background-color: linear-gradient(black, white);
 }
 
 .nextBrick {
@@ -15,10 +20,6 @@
     -fx-border-radius: 12px;
      -fx-background-color: rgba(26, 26, 26, 0.6);
 
-}
-/*for background image*/
-.backgroundImage{
--fx-opacity: 0.9;
 }
 
 .nextBrickLabel {
