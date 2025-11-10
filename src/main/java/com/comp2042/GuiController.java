@@ -50,6 +50,8 @@ public class GuiController implements Initializable {
     @FXML
     private Label scoreLabel ;
     //to show the image background
+    @FXML
+    private Label levelLabel;
 
 
     private Rectangle[][] displayMatrix;
@@ -218,6 +220,11 @@ public class GuiController implements Initializable {
 // added scoreLabel line to show score in the side panel
     public void bindScore(IntegerProperty scoreProperty) {
         scoreLabel.textProperty().bind(scoreProperty.asString("%d"));
+    }
+
+    //added levelLabel line to show level in the side panel
+    public void bindLevel(IntegerProperty levelProperty) {
+        levelLabel.textProperty().bind(levelProperty.asString("%d"));
     }
 
     public void gameOver() {

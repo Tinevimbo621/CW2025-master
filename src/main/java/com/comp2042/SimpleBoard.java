@@ -15,6 +15,7 @@ public class SimpleBoard implements Board {
     private int[][] currentGameMatrix;
     private Point currentOffset;
     private final Score score;
+    private final Score level ;
     //next brick
     private Brick nextBrick;
 
@@ -26,6 +27,7 @@ public class SimpleBoard implements Board {
         brickGenerator = new RandomBrickGenerator();
         brickRotator = new BrickRotator();
         score = new Score();
+        level = new Score();
     }
 
     @Override
@@ -161,7 +163,6 @@ public class SimpleBoard implements Board {
     public Score getScore() {
         return score;
     }
-
 
     @Override
     public void newGame() {

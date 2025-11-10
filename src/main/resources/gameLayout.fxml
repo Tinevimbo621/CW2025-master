@@ -22,6 +22,7 @@
                    minWidth="500" minHeight="800"
                    maxWidth="500" maxHeight="800"
                    styleClass="gameContainer" >
+
         <GridPane fx:id="brickPanel" vgap="1" hgap="1" layoutX="600" layoutY="100"/>
         <BorderPane styleClass="gameBoard" fx:id="gameBoard"
                 AnchorPane.topAnchor="0"

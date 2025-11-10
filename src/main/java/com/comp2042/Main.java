@@ -4,6 +4,8 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
 import javax.swing.*;
@@ -16,22 +18,26 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        URL location = getClass().getClassLoader().getResource("gameLayout.fxml");
-        ResourceBundle resources = null;
-        FXMLLoader fxmlLoader = new FXMLLoader(location, resources);
+        URL location = getClass().getClassLoader().getResource("mainMenu.fxml");
+       // ResourceBundle resources = null;
+        FXMLLoader fxmlLoader = new FXMLLoader(location);
         Parent root = fxmlLoader.load();
-        GuiController c = fxmlLoader.getController();
+
 
         primaryStage.setTitle("TetrisJFX");
         //making my stage resizable
         primaryStage.setResizable(true);
         primaryStage.setMinHeight(800);
         primaryStage.setMinWidth(800);
+
+
         //removed Scene height and width
         Scene scene = new Scene(root,800, 800);
         primaryStage.setScene(scene);
         primaryStage.show();
-        new GameController(c);
+
+
+        //new GameController(c);
     }
 
 
