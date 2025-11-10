@@ -78,3 +78,8 @@
     -fx-fill: yellow;
     -fx-text-fill: yellow;
 }
+
+.menu-button{
+ -fx-background-color:black;
+ -fx-text-fill: white ;
+}

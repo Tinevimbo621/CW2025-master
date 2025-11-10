@@ -1,35 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
-<?import javafx.scene.image.ImageView?>
 <?import java.net.URL?>
-<StackPane xmlns="http://javafx.com/javafx"
-           xmlns:fx="http://javafx.com/fxml"
-           fx:controller="com.comp2042.MainMenuController"
-           prefHeight="400.0" prefWidth="600.0">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-    <ImageView fx:id="backgroundImage"
-               fitHeight="800"
-               fitWidth="600"
-               preserveRatio="false"/>
+<StackPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.comp2042.MainMenuController">
+
+    <ImageView fx:id="backgroundImage" fitHeight="800" fitWidth="600" preserveRatio="false" />
 
     <VBox alignment="CENTER" spacing="20">
         <HBox alignment="CENTER" spacing="40">
-            <Button fx:id="marathonButton" text="Marathon Mode" styleClass="menu-button" />
-            <Button fx:id="ultraButton" text="Ultra Mode" styleClass="menu-button" />
-            <Button fx:id="sprintButton" text="Sprint Mode" styleClass="menu-button" />
+            <Button fx:id="marathonButton" prefHeight="70.0" prefWidth="141.0" styleClass="menu-button" text="Marathon Mode" />
+            <Button fx:id="ultraButton" prefHeight="74.0" prefWidth="161.0" styleClass="menu-button" text="Ultra Mode" />
+            <Button fx:id="sprintButton" prefHeight="74.0" prefWidth="150.0" styleClass="menu-button" text="Sprint Mode" />
         </HBox>
 
 
 
-        <Button fx:id="exitButton" text="Exit" styleClass="menu-button" />
+        <Button fx:id="exitButton" prefHeight="30.0" prefWidth="47.0" styleClass="menu-button" text="Exit" />
     </VBox>
     <stylesheets>
-        <URL value="@window_style.css"/>
+        <URL value="@window_style.css" />
     </stylesheets>
 </StackPane>
