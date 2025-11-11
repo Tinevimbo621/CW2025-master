@@ -201,7 +201,7 @@ public class GuiController implements Initializable {
         rectangle.setArcWidth(9);
     }
 
-    private void moveDown(MoveEvent event) {
+  /*  private void moveDown(MoveEvent event) {
         if (isPause.getValue() == Boolean.FALSE) {
             DownData downData = eventListener.onDownEvent(event);
             if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
@@ -212,7 +212,40 @@ public class GuiController implements Initializable {
             refreshBrick(downData.getViewData());
         }
         gamePanel.requestFocus();
+    }*/
+  private Label LinesLabel;
+  private int totalClearedRows = 0;
+
+    public void setLinesLabel(Label label) {
+        this.LinesLabel = label;
     }
+
+    private void moveDown(MoveEvent event) {
+        if (isPause.getValue() == Boolean.FALSE) {
+            DownData downData = eventListener.onDownEvent(event);
+
+            // Handle cleared rows
+            ClearRow clearRow = downData.getClearRow();
+            if (clearRow != null && clearRow.getLinesRemoved() > 0) {
+                    totalClearedRows += clearRow.getLinesRemoved();
+
+                // Update lines cleared label
+                if (LinesLabel != null) {
+                    LinesLabel.setText("Lines Cleared: " + totalClearedRows);
+                }
+
+                // Show score notification
+                NotificationPanel notificationPanel = new NotificationPanel("+" + clearRow.getScoreBonus());
+                groupNotification.getChildren().add(notificationPanel);
+                notificationPanel.showScore(groupNotification.getChildren());
+            }
+
+            // Refresh brick position
+            refreshBrick(downData.getViewData());
+        }
+        gamePanel.requestFocus();
+    }
+
 
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
@@ -256,6 +289,7 @@ public class GuiController implements Initializable {
             }
         }
     }
+
 
 
     public void pauseGame(ActionEvent actionEvent) {

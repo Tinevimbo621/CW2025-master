@@ -83,3 +83,13 @@
  -fx-background-color:black;
  -fx-text-fill: white ;
 }
+
+.pause-button{
+      -fx-background-color: linear-gradient(blue, black);
+       -fx-text-fill: white;
+       -fx-font-weight: bold;
+       -fx-padding: 8 16;
+       -fx-background-radius: 5;
+       -fx-border-radius: 50;
+
+}
