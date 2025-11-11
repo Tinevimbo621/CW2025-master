@@ -25,9 +25,9 @@
       </VBox>
       <!--Anchor pane is my tetris area which stays centered and locked-->
        <AnchorPane fx:id="rootContainer"
-                   prefWidth="500" prefHeight="800"
-                   minWidth="500" minHeight="800"
-                   maxWidth="500" maxHeight="800"
+                   prefWidth="400" prefHeight="800"
+                   minWidth="400" minHeight="800"
+                   maxWidth="400" maxHeight="800"
                    styleClass="gameContainer" >
 
         <GridPane fx:id="brickPanel" vgap="1" hgap="1" layoutX="600" layoutY="100"/>
