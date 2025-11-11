@@ -28,11 +28,11 @@ public class Main extends Application {
         //making my stage resizable
         primaryStage.setResizable(true);
         primaryStage.setMinHeight(800);
-        primaryStage.setMinWidth(800);
+        primaryStage.setMinWidth(900);
 
 
         //removed Scene height and width
-        Scene scene = new Scene(root,800, 800);
+        Scene scene = new Scene(root,900, 800);
         primaryStage.setScene(scene);
         primaryStage.show();
 
