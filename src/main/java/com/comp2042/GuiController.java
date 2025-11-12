@@ -8,8 +8,13 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.Reflection;
 import javafx.scene.image.Image;
@@ -21,6 +26,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.net.URL;
@@ -52,6 +58,14 @@ public class GuiController implements Initializable {
     //to show the image background
     @FXML
     private Label levelLabel;
+
+    //pause button
+    @FXML
+    private Button pauseButton ;
+    // mainMenu button
+    @FXML
+    private Button mainmenuButton;
+
 
 
     private Rectangle[][] displayMatrix;
@@ -290,9 +304,40 @@ public class GuiController implements Initializable {
         }
     }
 
+    // Button event handlers
+
 
 
     public void pauseGame(ActionEvent actionEvent) {
+        if (isPause.get()) { // Check property value
+            timeLine.play();
+            pauseButton.setText("Pause");
+        } else {
+            timeLine.pause();
+            pauseButton.setText("Resume");
+        }
+        isPause.set(!isPause.get()); // Toggle property value
         gamePanel.requestFocus();
     }
+
+    // method for main menu button
+    public void mainMenu(ActionEvent actionEvent) throws Exception {
+        // Load the FXML file
+        URL location = getClass().getClassLoader().getResource("mainMenu.fxml");
+        FXMLLoader fxmlLoader = new FXMLLoader(location);
+        Parent root = fxmlLoader.load();
+
+        // Get the current stage from the button or control that triggered the event
+        Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
+
+        // Set the new scene
+        Scene scene = new Scene(root,900,800);
+        stage.setScene(scene);
+        stage.show();
+
+
+    }
+
 }
+
+

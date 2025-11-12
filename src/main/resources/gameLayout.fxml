@@ -18,9 +18,9 @@
   <HBox alignment="CENTER" spacing="40">
 
       <VBox fx:id="pause" alignment="TOP_LEFT" spacing="30">
-          <Button fx:id="pauseButton" prefHeight="70.0" prefWidth="141.0" styleClass="pause-button" text="Pause" />
-          <Button fx:id="quitButton" prefHeight="70.0" prefWidth="141.0" styleClass="pause-button" text="Quit" />
-          <Button fx:id="mainmenuButton" prefHeight="70.0" prefWidth="141.0" styleClass="pause-button" text="Main Menu" />
+          <Button fx:id="pauseButton"  styleClass="pause-button" text="Pause" onAction="#pauseGame" />
+          <Button fx:id="quitButton"  styleClass="pause-button" text="Quit" />
+          <Button fx:id="mainmenuButton"  styleClass="pause-button" text="Main Menu"  onAction="#mainMenu" />
 
       </VBox>
       <!--Anchor pane is my tetris area which stays centered and locked-->
