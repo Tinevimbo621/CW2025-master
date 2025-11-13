@@ -12,6 +12,7 @@ public class GameController implements InputEventListener {
         viewGuiController.setEventListener(this);
         viewGuiController.initGameView(board.getBoardMatrix(), board.getViewData());
         viewGuiController.bindScore(board.getScore().scoreProperty());
+        viewGuiController.bindLevel(board.getScore().levelProperty());
     }
 
     @Override

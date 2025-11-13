@@ -17,8 +17,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.Reflection;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
@@ -28,6 +26,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -268,6 +267,7 @@ public class GuiController implements Initializable {
     public void bindScore(IntegerProperty scoreProperty) {
         scoreLabel.textProperty().bind(scoreProperty.asString("%d"));
     }
+
 
     //added levelLabel line to show level in the side panel
     public void bindLevel(IntegerProperty levelProperty) {

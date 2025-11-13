@@ -3,6 +3,9 @@ package com.comp2042;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -96,27 +99,31 @@ public class MainMenuController {
             new GameController(guiController);
 
             // Add countdown timer overlay
-            final int TIME_LIMIT = 120; // seconds
+            /* // seconds
             Label timerLabel = new Label("Time: " + TIME_LIMIT);
-            timerLabel.setStyle("-fx-font-size: 40px; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\"");
+            timerLabel.setStyle("-fx-font-size: 40px; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\"");*/
+            final int TIME_LIMIT = 120;
+            final IntegerProperty timeLeft = new SimpleIntegerProperty(TIME_LIMIT);
+            final Label timerLabel = new Label();
+            timerLabel.textProperty().bind(Bindings.concat("Time: ", timeLeft.asString()));
 
             StackPane root = (StackPane) gameScene.getRoot();
             root.getChildren().add(timerLabel);
             StackPane.setAlignment(timerLabel, Pos.BOTTOM_RIGHT);
             StackPane.setMargin(timerLabel, new Insets(10, 10, 10, 10));
 
-            Timeline timer = new Timeline(
+            final Timeline timer = new Timeline(
                     new KeyFrame(Duration.seconds(1), e -> {
-                        int currentTime = Integer.parseInt(timerLabel.getText().split(": ")[1]);
+                        int currentTime = timeLeft.get();
                         if (currentTime > 0) {
-                            timerLabel.setText("Time: " + (currentTime - 1));
+                            timeLeft.set(currentTime - 1);
                         } else {
-                            ((Timeline) e.getSource()).stop();
+
                             guiController.gameOver();
                         }
                     })
             );
-            timer.setCycleCount(TIME_LIMIT);
+            timer.setCycleCount(Timeline.INDEFINITE);
             timer.play();
 
             // Switch to game scene

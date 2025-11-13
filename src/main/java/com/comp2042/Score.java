@@ -22,7 +22,7 @@ public final class Score {
 
     private void updateLevel() {
         // Level = score / 1000 + 1 (minimum level 1)
-        int newLevel = (score.get() / 10) + 1;
+        int newLevel = (score.get() / 1000) + 1;
         if (newLevel != level.get()) {
             level.setValue(newLevel);
         }
