@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.TextField?>
 <StackPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.comp2042.MainMenuController">
 
     <ImageView fx:id="backgroundImage" fitHeight="800" fitWidth="600" preserveRatio="false" />
@@ -19,8 +20,12 @@
         </HBox>
 
 
+        <TextField fx:id="playerNameField" prefHeight="30.0" prefWidth="47.0" styleClass="menu-button" />
 
-        <Button fx:id="exitButton" prefHeight="30.0" prefWidth="47.0" styleClass="menu-button" text="Exit" />
+
+        <Button fx:id="leaderBoardButton" prefHeight="30.0" prefWidth="47.0" styleClass="menu-button" text="Leader Board" onAction="#openLeaderboard" />
+        <Button fx:id="exitButton" prefHeight="30.0" prefWidth="47.0" styleClass="menu-button" text="Exit"  />
+
     </VBox>
     <stylesheets>
         <URL value="@window_style.css" />

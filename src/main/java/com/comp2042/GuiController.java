@@ -1,7 +1,10 @@
 package com.comp2042;
 
+import com.comp2042.logic.bricks.Brick;
+import com.comp2042.logic.bricks.BrickGenerator;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -28,7 +31,10 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 
+import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class GuiController implements Initializable {
@@ -255,6 +261,7 @@ public class GuiController implements Initializable {
 
             // Refresh brick position
             refreshBrick(downData.getViewData());
+
         }
         gamePanel.requestFocus();
     }
@@ -279,6 +286,7 @@ public class GuiController implements Initializable {
         gameOverPanel.setVisible(true);
         isGameOver.setValue(Boolean.TRUE);
     }
+
 
     public void newGame(ActionEvent actionEvent) {
         timeLine.stop();

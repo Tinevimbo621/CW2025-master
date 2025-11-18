@@ -6,9 +6,12 @@ import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -19,9 +22,13 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+
+
 import javafx.geometry.Insets;
 
-import java.awt.*;
+import javafx.scene.control.TextField;
+
+import java.io.IOException;
 import java.net.URL;
 
 
@@ -38,6 +45,12 @@ public class MainMenuController {
 
     @FXML
     private Button exitButton;
+
+    @FXML
+    private Button leaderBoardButton;
+
+    @FXML private TextField playerNameField;
+
 
 
     @FXML
@@ -59,6 +72,8 @@ public class MainMenuController {
 
         try {
             System.out.println("Starting " + mode + " mode...Endless play");
+            String playerName = playerNameField.getText().trim();
+            if (playerName.isEmpty()) playerName = "Player";
 
             // Load the actual game layout
             URL gameLayout = getClass().getClassLoader().getResource("gameLayout.fxml");
@@ -69,7 +84,8 @@ public class MainMenuController {
             GuiController guiController = loader.getController();
 
             // Pass it to GameController
-            new GameController(guiController);
+            new GameController(guiController, playerName, mode);
+
 
             // Switch the stage to the game scene
             Stage stage = (Stage) marathonButton.getScene().getWindow();
@@ -86,6 +102,8 @@ public class MainMenuController {
     private void startUltra(String mode) {
         try {
             System.out.println("Starting " + mode + " mode... Timed play (2 minutes)");
+            String playerName = playerNameField.getText().trim();
+            if (playerName.isEmpty()) playerName = "Player";
 
             // Load the actual game layout
             URL gameLayout = getClass().getClassLoader().getResource("gameLayout.fxml");
@@ -96,13 +114,14 @@ public class MainMenuController {
             GuiController guiController = loader.getController();
 
             // Pass it to GameController
-            new GameController(guiController);
+            new GameController(guiController, playerName, mode);
+
 
             // Add countdown timer overlay
             /* // seconds
             Label timerLabel = new Label("Time: " + TIME_LIMIT);
             timerLabel.setStyle("-fx-font-size: 40px; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\"");*/
-            final int TIME_LIMIT = 120;
+            final int TIME_LIMIT = 20;
             final IntegerProperty timeLeft = new SimpleIntegerProperty(TIME_LIMIT);
             final Label timerLabel = new Label();
             timerLabel.textProperty().bind(Bindings.concat("Time: ", timeLeft.asString()));
@@ -141,6 +160,8 @@ public class MainMenuController {
     private void startSprint(String mode) {
         try {
             System.out.println("Starting " + mode + " mode...Endless play");
+            String playerName = playerNameField.getText().trim();
+            if (playerName.isEmpty()) playerName = "Player";
 
             // Load the actual game layout
             URL gameLayout = getClass().getClassLoader().getResource("gameLayout.fxml");
@@ -151,7 +172,8 @@ public class MainMenuController {
             GuiController guiController = loader.getController();
 
             // Pass it to GameController
-            new GameController(guiController);
+            new GameController(guiController, playerName, mode);
+
             Label LinesLabel = new Label("Lines Cleared: 0");
             LinesLabel.setStyle("-fx-font-size: 25px; -fx-text-fill: black; -fx-font-weight: bold;");
 
@@ -180,6 +202,17 @@ public class MainMenuController {
         Stage stage = (Stage) exitButton.getScene().getWindow();
         stage.close();
     }
+
+    public void openLeaderboard(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/leaderboard.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setScene(scene);
+        stage.show();
+    }
+
 
 }
 

@@ -1,12 +1,18 @@
 package com.comp2042;
 
+import javafx.beans.property.IntegerProperty;
+
 public class GameController implements InputEventListener {
 //increasing game board from 25*10 to 39 * 23 so the block can reach all boarders
     private Board board = new SimpleBoard(39, 23);
+    private LeaderboardManager leaderboardManager = new LeaderboardManager();
+    private String playerName;
+    private String gameMode;
+
 
     private final GuiController viewGuiController;
 
-    public GameController(GuiController c) {
+    public GameController(GuiController c, String playerName, String mode) {
         viewGuiController = c;
         board.createNewBrick();
         viewGuiController.setEventListener(this);
@@ -24,11 +30,14 @@ public class GameController implements InputEventListener {
             clearRow = board.clearRows();
             if (clearRow.getLinesRemoved() > 0) {
                 board.getScore().add(clearRow.getScoreBonus());
+
             }
 
 
 
             if (board.createNewBrick()) {
+                //save the score before ending game
+                saveScoreToLeaderboard();
                 viewGuiController.gameOver();
             } else {
                 viewGuiController.updateNextShapePreview(board.getViewData().getNextBrickData());
@@ -66,5 +75,20 @@ public class GameController implements InputEventListener {
         board.newGame();
         viewGuiController.refreshGameBackground(board.getBoardMatrix());
     }
+    // method to save score to leaderboard
+    private void saveScoreToLeaderboard() {
+      IntegerProperty finalScore =board.getScore().scoreProperty();
+        ScoreEntry entry = new ScoreEntry(playerName, finalScore, gameMode);
+
+        try {
+            leaderboardManager.saveEntry(entry);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
+
+
 

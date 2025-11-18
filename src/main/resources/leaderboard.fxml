@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.comp2042.LeaderboardController"
+            prefWidth="600" prefHeight="400">
+
+    <top>
+        <Label text="Leaderboard"
+               style="-fx-font-size: 24px; -fx-font-weight: bold;"
+               BorderPane.alignment="CENTER"/>
+    </top>
+
+    <center>
+        <TableView fx:id="table" prefWidth="580">
+            <columns>
+                <TableColumn fx:id="colRank" text="Rank" prefWidth="80"/>
+                <TableColumn fx:id="colName" text="Name" prefWidth="200"/>
+                <TableColumn fx:id="colScore" text="Score" prefWidth="150"/>
+                <TableColumn fx:id="colDate" text="Date" prefWidth="150"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="CENTER">
+            <Button text="Back" onAction="#backToMenu"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

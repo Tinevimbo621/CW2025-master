@@ -1,74 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <?import com.comp2042.GameOverPanel?>
+<?import java.net.URL?>
+<?import javafx.scene.Group?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.Group?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
-<?import java.net.URL?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
 <!--Pane does not auto resize the game so i am changing to stackPane which will center my tetris board automatically and allow resizing-->
 <!--StackPane is my black background which fills the entire window-->
-<?import javafx.scene.image.ImageView?>
-<StackPane fx:controller="com.comp2042.GuiController"
-           xmlns:fx="http://javafx.com/fxml"
-           styleClass="rootPane">
+
+<StackPane styleClass="rootPane" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.comp2042.GuiController">
 
   <!--Adding Hbox so my side panel and game lie next to each other-->
   <HBox alignment="CENTER" spacing="40">
 
       <VBox fx:id="pause" alignment="TOP_LEFT" spacing="30">
-          <Button fx:id="pauseButton"  styleClass="pause-button" text="Pause" onAction="#pauseGame" />
-          <Button fx:id="quitButton"  styleClass="pause-button" text="Quit" />
-          <Button fx:id="mainmenuButton"  styleClass="pause-button" text="Main Menu"  onAction="#mainMenu" />
+          <Button fx:id="pauseButton" onAction="#pauseGame" styleClass="pause-button" text="Pause" />
+          <Button fx:id="mainmenuButton" onAction="#mainMenu" styleClass="pause-button" text="Main Menu" />
 
       </VBox>
       <!--Anchor pane is my tetris area which stays centered and locked-->
-       <AnchorPane fx:id="rootContainer"
-                   prefWidth="500" prefHeight="800"
-                   minWidth="500" minHeight="800"
-                   maxWidth="500" maxHeight="800"
-                   styleClass="gameContainer" >
+       <AnchorPane fx:id="rootContainer" maxHeight="800" maxWidth="500" minHeight="800" minWidth="500" prefHeight="800" prefWidth="500" styleClass="gameContainer">
 
-        <GridPane fx:id="brickPanel" vgap="1" hgap="1" layoutX="600" layoutY="100"/>
-        <BorderPane styleClass="gameBoard" fx:id="gameBoard"
-                AnchorPane.topAnchor="0"
-                AnchorPane.leftAnchor="0"
-                AnchorPane.rightAnchor="0"
-                AnchorPane.bottomAnchor="0" >
+        <GridPane fx:id="brickPanel" hgap="1" layoutX="600" layoutY="100" vgap="1" />
+        <BorderPane fx:id="gameBoard" styleClass="gameBoard" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
           <center>
-              <GridPane fx:id="gamePanel"
-                        hgap="1" vgap="1"
-                        layoutX="50" layoutY="50"
-                        AnchorPane.leftAnchor="0"
-                        AnchorPane.rightAnchor="0"
-                        AnchorPane.topAnchor="0"
-                        AnchorPane.bottomAnchor="0"
-                        alignment="CENTER"/><!--aligning game panel to center-->
+              <GridPane fx:id="gamePanel" alignment="CENTER" hgap="1" layoutX="50" layoutY="50" vgap="1" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" /><!--aligning game panel to center-->
          </center>
 
-        </BorderPane>
+              </BorderPane>
 
-         <Group fx:id="groupNotification" layoutX="14" layoutY="203">
-            <VBox alignment="CENTER">
-               <GameOverPanel fx:id="gameOverPanel"/>
-           </VBox>
+                     <Group fx:id="groupNotification" layoutX="14" layoutY="203">
+            <VBox alignment="CENTER" />
          </Group>
+         <GameOverPanel fx:id="gameOverPanel" layoutX="125.0" layoutY="200.0" />
     </AnchorPane>
 
       <VBox fx:id="sidePanel" alignment="TOP_CENTER" spacing="30">
-          <Label text="Score:" styleClass="scoreClass"/>
-          <Label fx:id="scoreLabel" text="0" styleClass="scoreClass"/>
+          <Label styleClass="scoreClass" text="Score:" />
+          <Label fx:id="scoreLabel" styleClass="scoreClass" text="0" />
 
-          <Label text="Next:" styleClass="nextBrickLabel"/>
-          <GridPane fx:id="nextBrickPanel"
-                    alignment="CENTER"
-                    prefWidth="100" prefHeight="100"
-                    hgap="2" vgap="2"
-                    style="-fx-border-color: white; -fx-border-width: 2;"/>
+          <Label styleClass="nextBrickLabel" text="Next:" />
+          <GridPane fx:id="nextBrickPanel" alignment="CENTER" hgap="2" prefHeight="100" prefWidth="100" style="-fx-border-color: white; -fx-border-width: 2;" vgap="2" />
 
-          <Label text="Level:" styleClass="scoreClass"/>
-          <Label fx:id="levelLabel" text="1" styleClass="scoreClass"/>
+          <Label styleClass="scoreClass" text="Level:" />
+          <Label fx:id="levelLabel" styleClass="scoreClass" text="1" />
       </VBox>
 
   </HBox>
@@ -76,6 +58,6 @@
 
 
     <stylesheets>
-        <URL value="@window_style.css"/>
+        <URL value="@window_style.css" />
     </stylesheets>
 </StackPane>

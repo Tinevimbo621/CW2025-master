@@ -12,7 +12,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.net.URL;
 
@@ -29,8 +28,8 @@ public class GameOverPanel extends BorderPane {
 
         mainMenuButton.setOnAction(this::mainMenu); // Link to the method below
 
-        VBox contentBox = new VBox(20, gameOverLabel,  mainMenuButton);
-        contentBox.setAlignment(Pos.CENTER);
+       VBox contentBox = new VBox(20, gameOverLabel,  mainMenuButton);
+        contentBox.setAlignment(Pos.CENTER_RIGHT);
         setCenter(contentBox);
     }
 
