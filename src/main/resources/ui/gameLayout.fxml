@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.comp2042.GameOverPanel?>
+<?import com.comp2042.ui.GameOverPanel?>
 <?import java.net.URL?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.control.Button?>
@@ -15,7 +15,7 @@
 <!--Pane does not auto resize the game so i am changing to stackPane which will center my tetris board automatically and allow resizing-->
 <!--StackPane is my black background which fills the entire window-->
 
-<StackPane styleClass="rootPane" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.comp2042.GuiController">
+<StackPane styleClass="rootPane" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.comp2042.Controller.GuiController">
 
   <!--Adding Hbox so my side panel and game lie next to each other-->
   <HBox alignment="CENTER" spacing="40">

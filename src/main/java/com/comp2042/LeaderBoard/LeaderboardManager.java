@@ -1,5 +1,5 @@
 
-package com.comp2042;
+package com.comp2042.LeaderBoard;
 
 import java.io.*;
 import java.nio.file.*;

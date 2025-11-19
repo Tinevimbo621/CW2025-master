@@ -1,7 +1,6 @@
-package com.comp2042;
+package com.comp2042.ui;
 
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -35,7 +34,7 @@ public class GameOverPanel extends BorderPane {
 
     public void mainMenu(ActionEvent actionEvent) {
         try {
-            URL location = getClass().getClassLoader().getResource("mainMenu.fxml");
+            URL location = getClass().getClassLoader().getResource("ui/mainMenu.fxml");
             FXMLLoader fxmlLoader = new FXMLLoader(location);
             Parent root = fxmlLoader.load();
 
