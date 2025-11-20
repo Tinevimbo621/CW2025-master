@@ -20,7 +20,8 @@ public class GameController implements InputEventListener {
     private static final int BOARD_HEIGHT = 23;
     private static final int USER_DROP_SCORE_BONUS = 1;
     private static final String DEFAULT_PLAYER_NAME = "Unknown Player";
-
+    // Level/timing constants
+    private static final int LEVEL_TIME_LIMIT_SECONDS = 120;
     //increasing game board from 25*10 to 39 * 23 so the block can reach all boarders
 
     private final Board board ;
@@ -33,7 +34,10 @@ public class GameController implements InputEventListener {
     private final String playerName;
     private final String gameMode;
 
-
+    // New level-related state
+    private int currentLevel = 1;
+    private int linesClearedThisLevel = 0;
+    private boolean levelWon = false;
     /**
      * Constructs a new GameController with the specified GUI controller and game settings.
      *
@@ -48,6 +52,10 @@ public class GameController implements InputEventListener {
         this.board = createGameBoard();
         this.leaderboardManager = new LeaderboardManager();
         this.ghostPieceManager = new GhostPieceManager(board);
+
+        // Let the GuiController know about this controller so it can forward events
+        this.viewGuiController.setGameController(this);
+        viewGuiController.setOnLevelComplete(() -> handleLevelComplete());
 
         initializeGame();
 
@@ -101,6 +109,44 @@ public class GameController implements InputEventListener {
         viewGuiController.bindLevel(board.getScore().levelProperty());
     }
 
+    /* ---------- level system ---------- */
+
+    private void startLevel() {
+        this.linesClearedThisLevel = 0;
+        this.levelWon = false;
+
+        // ensure UI level property reflects the current level
+        try {
+            // board.getScore().levelProperty() was bound in bindGameProperties; set it here
+            board.getScore().levelProperty().set(currentLevel);
+        } catch (Exception ignored) {
+            // If Score API differs, ignore — the important part is internal level tracking.
+        }
+
+        // Optionally reset timer UI to LEVEL_TIME_LIMIT_SECONDS if desired
+        // Only do this if GuiController provided ability to reset. We call it defensively:
+        try {
+            viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
+        } catch (Exception ignored) {
+        }
+
+        System.out.println("Starting Level " + currentLevel + " — need " + getRequiredLines() + " lines.");
+    }
+
+    private int getRequiredLines() {
+        return currentLevel * 1;
+    }
+
+    private void advanceLevel() {
+        System.out.println("LEVEL " + currentLevel + " COMPLETE!");
+        viewGuiController.showLevelUpNotification(currentLevel);
+        currentLevel++;
+        board.getScore().levelProperty().set(currentLevel);
+        startLevel();
+
+        // Hook for difficulty increase (e.g., speed up board gravity). You can add:
+        // board.getScore().setDropInterval(...); or similar based on your codebase.
+    }
     /**
      * Sanitizes and validates the player name.
      *
@@ -295,6 +341,59 @@ public class GameController implements InputEventListener {
             return board.getViewData();
         }
     }
+    /**
+     * Handles hard drop events.
+     *
+     * @param event The move event
+     * @return Updated ViewData after instant drop
+     */
+    @Override
+    public ViewData onHardDropEvent(MoveEvent event) {
+        try {
+            ViewData brick = board.getViewData();
+
+            // 1. Calculate ghost drop distance
+            int dropDistance = getGhostDrop(brick);
+
+            // 2. Apply instant downward movement
+            for (int i = 0; i < dropDistance; i++) {
+                board.moveBrickDown();
+            }
+
+            // 3. Add hard drop score bonus
+            // (common formula: distance * 2)
+            board.getScore().add(dropDistance * 2);
+
+            // 4. Merge brick to background
+            board.mergeBrickToBackground();
+
+            // 5. Clear lines
+            ClearRow clearRow = board.clearRows();
+            if (clearRow != null && clearRow.getLinesRemoved() > 0) {
+                board.getScore().add(clearRow.getScoreBonus());
+                viewGuiController.updateLinesCleared(clearRow.getLinesRemoved());
+            }
+
+
+            // 6. Create next brick or end game
+            if (board.createNewBrick()) {
+                handleGameOver();
+            } else {
+                viewGuiController.updateNextShapePreview(
+                        board.getViewData().getNextBrickData()
+                );
+            }
+
+            // 7. Refresh board
+            viewGuiController.refreshGameBackground(board.getBoardMatrix());
+
+            return board.getViewData();
+
+        }catch (Exception e) {
+            handleGameError("Error during hard drop", e);
+            return board.getViewData();
+        }
+    }
 
 
     /**
@@ -304,6 +403,8 @@ public class GameController implements InputEventListener {
     public void createNewGame() {
         try {
             board.newGame();
+            this.currentLevel = 1;
+            startLevel();
             viewGuiController.refreshGameBackground(board.getBoardMatrix());
         } catch (Exception e) {
             handleGameError("Error creating new game", e);
@@ -345,6 +446,36 @@ public class GameController implements InputEventListener {
         } catch (Exception e) {
             handleGameError("Error calculating ghost drop distance", e);
             return 0;
+        }
+    }
+    /**
+     * Called by GuiController whenever rows are cleared on the board.
+     * This method receives the number of newly removed lines and checks the
+     * level completion rule: clearedLines >= currentLevel * 10 and timeLeft > 0.
+     *
+     * Note: GuiController must call this method after updating its own label.
+     *
+     * @param linesRemoved Number of lines cleared in that event
+     */
+    public void onLinesCleared(int linesRemoved) {
+        if (levelWon) return; // ignore if we've already won this level
+
+        // Increment per-level counter
+        this.linesClearedThisLevel += linesRemoved;
+
+        // Check timer via GuiController if available
+        int timeLeft = Integer.MAX_VALUE;
+        try {
+            timeLeft = viewGuiController.getTimeLeft(); // GuiController must provide this method
+        } catch (Exception ignored) { }
+
+        System.out.println("Level " + currentLevel + " progress: " +
+                linesClearedThisLevel + "/" + getRequiredLines() + " lines, timeLeft=" + timeLeft);
+
+        // Check win condition: required lines reached and time still remaining (>0)
+        if (linesClearedThisLevel >= getRequiredLines() && timeLeft > 0) {
+            levelWon = true;
+            advanceLevel();
         }
     }
 
@@ -495,4 +626,18 @@ public class GameController implements InputEventListener {
             return y >= grid.length || x < 0 || x >= grid[0].length;
         }
     }
+    private void handleLevelComplete() {
+        // 1. Restart the timer
+        viewGuiController.resetTimer(120);
+
+        // 2. Increase level to 2
+        board.getScore().levelProperty().set(2);
+
+        // 3. Show notification
+        viewGuiController.showLevelUpNotification(2);
+
+        // 4. Reset line requirement
+        viewGuiController.resetLinesCleared();
+    }
+
 }

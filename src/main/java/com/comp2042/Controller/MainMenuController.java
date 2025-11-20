@@ -1,24 +1,29 @@
 package com.comp2042.Controller;
 
 
+import com.comp2042.ui.NotificationPanel;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -47,6 +52,8 @@ public class MainMenuController {
     private Button leaderBoardButton;
     @FXML private TextField playerNameField;
     @FXML
+    private Group groupNotification;
+    @FXML
 
     //Constants
 
@@ -58,35 +65,36 @@ public class MainMenuController {
     private static final double SCENE_HEIGHT = 800.0;
 
     // UI Styling Constants
-    private static final String TIMER_LABEL_STYLE = "-fx-font-size: 40px; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-family: &quot;Let's go Digital&quot;";
+    private static final String TIMER_LABEL_STYLE = "-fx-font-size: 40px; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-family: Let's go Digital;";
     private static final String LINES_LABEL_STYLE = "-fx-font-size: 25px; -fx-text-fill: black; -fx-font-weight: bold;";
     private static final Insets LABEL_MARGIN = new Insets(10, 10, 10, 10);
 
     // Game Mode Configuration
-    private static final int ULTRA_TIME_LIMIT_SECONDS = 20;
+    private static final int ULTRA_TIME_LIMIT_SECONDS = 120;
 
     /**
      * Enum representing different game modes with their configurations
      */
      private enum GameMode {
-        MARATHON("Marathon", "Endless play", false, false),
-        SPRINT("Sprint", "Endless play", false, true),
-        ULTRA("Ultra", "Timed play (2 minutes)", true, false);
+        MARATHON("Marathon", "Endless play.\n\nGoal: Survive as long as possible.\nNo timer.\nLines increase your score.", false, false),
+        SPRINT("Sprint", "Sprint Mode\n\nGoal: Clear lines equal to the level you are in.\nTimer:1 20 seconds.\nClearing lines extends progress.", true  , true),
+        ULTRA("Ultra",  "Ultra Mode\n\nScore as many points as possible within the time limit.\nThis is a fast-scoring challenge.\nTimer: 120 seconds.", true, false);
 
         private final String name;
-        private final String description;
+        private final String instructions;
+
         private final boolean hasTimer;
         private final boolean hasLineCounter;
 
-        GameMode(String name, String description, boolean hasTimer, boolean hasLineCounter) {
+        GameMode(String name, String instructions ,boolean hasTimer, boolean hasLineCounter) {
             this.name = name;
-            this.description = description;
+            this.instructions = instructions ;
             this.hasTimer = hasTimer;
             this.hasLineCounter = hasLineCounter;
         }
 
         public String getName() { return name; }
-        public String getDescription() { return description; }
+        public String getInstructions() { return instructions; }
         public boolean hasTimer() { return hasTimer; }
         public boolean hasLineCounter() { return hasLineCounter; }
     }
@@ -102,7 +110,6 @@ public class MainMenuController {
             logError("Failed to initialize MainMenuController", e);
         }
     }
-
     /**
      * Sets up the background image for the main menu.
      */
@@ -126,8 +133,8 @@ public class MainMenuController {
     private void setupButtonHandlers() {
         // Button event handlers
         marathonButton.setOnAction(e -> startGame(GameMode.MARATHON));
-        ultraButton.setOnAction(e -> startGame(GameMode.SPRINT));
-        sprintButton.setOnAction(e -> startGame(GameMode.ULTRA));
+        ultraButton.setOnAction(e -> startGame(GameMode.ULTRA));
+        sprintButton.setOnAction(e -> startGame(GameMode.SPRINT));
         exitButton.setOnAction(e -> exitGame());
     }
     /**
@@ -137,8 +144,9 @@ public class MainMenuController {
      */
     private void startGame(GameMode mode) {
         try {
+            showModeInstructions(mode);
             String playerName = getValidatedPlayerName();
-            logGameStart(mode, playerName);
+
 
             // Load game scene
             FXMLLoader loader = loadGameLayout();
@@ -158,6 +166,16 @@ public class MainMenuController {
             logError("Failed to start game in " + mode.getName() + " mode", e);
         }
     }
+    private void showModeInstructions(GameMode mode) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(mode.getName() + " Instructions");
+        alert.setHeaderText(mode.getName() + " Mode");
+        alert.setContentText(mode.getInstructions());
+
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+
+        alert.showAndWait();
+    }
     /**
      * Validates and returns the player name, using default if empty.
      *
@@ -166,16 +184,6 @@ public class MainMenuController {
     private String getValidatedPlayerName() {
         String playerName = playerNameField.getText().trim();
         return playerName.isEmpty() ? DEFAULT_PLAYER_NAME : playerName;
-    }
-    /**
-     * Logs the start of a game with mode and player information.
-     *
-     * @param mode The game mode
-     * @param playerName The player name
-     */
-    private void logGameStart(GameMode mode, String playerName) {
-        System.out.println("Starting " + mode.getName() + " mode... " + mode.getDescription() +
-                " - Player: " + playerName);
     }
 
     /**
@@ -241,13 +249,18 @@ public class MainMenuController {
      */
     private void setupTimerFeature(GuiController guiController, StackPane root) {
         final IntegerProperty timeLeft = new SimpleIntegerProperty(ULTRA_TIME_LIMIT_SECONDS);
+
         final Label timerLabel = createTimerLabel(timeLeft);
+
+
+
 
         root.getChildren().add(timerLabel);
         StackPane.setAlignment(timerLabel, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(timerLabel, LABEL_MARGIN);
 
         Timeline timer = createGameTimer(timeLeft, guiController);
+        guiController.setTimeLeftProperty(timeLeft, timer);
         timer.play();
     }
 
@@ -285,7 +298,6 @@ public class MainMenuController {
         timer.setCycleCount(Timeline.INDEFINITE);
         return timer;
     }
-
     /**
      * Sets up the line counter feature for sprint mode.
      *
@@ -301,7 +313,6 @@ public class MainMenuController {
 
         guiController.setLinesLabel(linesLabel);
     }
-
     /**
      * Creates a label for displaying cleared lines count.
      *
@@ -312,7 +323,6 @@ public class MainMenuController {
         linesLabel.setStyle(LINES_LABEL_STYLE);
         return linesLabel;
     }
-
     /**
      * Switches the current stage to the game scene.
      *
@@ -325,7 +335,6 @@ public class MainMenuController {
         stage.setTitle("TetrisJFX - " + mode.getName() + " Mode");
         stage.show();
     }
-
     /**
      * Gets the current stage from any of the button scenes.
      *
@@ -365,7 +374,6 @@ public class MainMenuController {
             throw e;
         }
     }
-
     /**
      * Logs error messages with optional exception details.
      *

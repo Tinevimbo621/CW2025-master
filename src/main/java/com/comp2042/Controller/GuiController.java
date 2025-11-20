@@ -55,6 +55,13 @@ public class GuiController implements Initializable {
     // File paths
     private static final String FONT_PATH = "digital.ttf";
     private static final String MAIN_MENU_FXML = "ui/mainMenu.fxml";
+    private GameController gameController;
+    private IntegerProperty timeLeft;
+
+    // add near other UI/game state fields
+
+    private IntegerProperty timeLeftProperty; // injected from MainMenuController
+
 
 
     // Reflection settings
@@ -188,7 +195,7 @@ public class GuiController implements Initializable {
         return code == KeyCode.LEFT || code == KeyCode.RIGHT ||
                 code == KeyCode.UP || code == KeyCode.DOWN ||
                 code == KeyCode.A || code == KeyCode.D ||
-                code == KeyCode.W || code == KeyCode.S;
+                code == KeyCode.W || code == KeyCode.S || code == KeyCode.SHIFT;
     }
 
     /**
@@ -206,9 +213,21 @@ public class GuiController implements Initializable {
             handleRotation();
         } else if (code == KeyCode.DOWN || code == KeyCode.S) {
             handleDownMovement();
+        } else if (code == KeyCode.SHIFT) {
+            sendHardDrop();
+
         }
         keyEvent.consume();
     }
+    private void sendHardDrop() {
+        if (eventListener != null) {
+            ViewData data = eventListener.onHardDropEvent(
+                    new MoveEvent(EventType.HARD_DROP, EventSource.USER)
+            );
+            refreshBrick(data);
+        }
+    }
+
 
     /**
      * Handles left movement.
@@ -570,12 +589,25 @@ public class GuiController implements Initializable {
      *
      * @param linesRemoved Number of lines removed
      */
-    private void updateLinesCleared(int linesRemoved) {
+    void updateLinesCleared(int linesRemoved) {
         totalClearedRows += linesRemoved;
         if (linesLabel != null) {
             linesLabel.setText("Lines Cleared: " + totalClearedRows);
         }
+        if (gameController != null) {
+            gameController.onLinesCleared(linesRemoved);
+        }
+        if (totalClearedRows >= requiredLinesToClear) {
+            levelCompleteHandler.run();   // Notify GameController
+        }
     }
+    private int requiredLinesToClear = 10;
+    private Runnable levelCompleteHandler;
+
+    public void setOnLevelComplete(Runnable handler) {
+        this.levelCompleteHandler = handler;
+    }
+
 
     /**
      * Shows a score notification for cleared lines.
@@ -588,6 +620,20 @@ public class GuiController implements Initializable {
         children.add(notificationPanel);
         notificationPanel.showScore(children);
     }
+    /**
+     * Shows a score notification for cleared lines.
+     *
+     * @param newLevel The completed level
+     */
+    public void showLevelUpNotification(int newLevel) {
+        NotificationPanel panel = new NotificationPanel("LEVEL " + newLevel + " COMPLETE!");
+
+        ObservableList<Node> children = groupNotification.getChildren();
+        children.add(panel);
+
+        panel.showScore(children); // same animation logic
+    }
+
 
     /**
      * Sets the event listener for game events.
@@ -795,6 +841,37 @@ public class GuiController implements Initializable {
             }
         }
     }
+    public void setGameController(GameController controller) {
+        this.gameController = controller;
+    }
+
+    public void setTimeLeftProperty(IntegerProperty timeLeft ,Timeline timer) {
+        this.timeLeft = timeLeft;
+        this.gameTimeline = timer ;
+    }
+
+    public int getTimeLeft() {
+        return timeLeft != null ? timeLeft.get() : Integer.MAX_VALUE;
+    }
+    /**
+     * Reset the timer to `seconds`. Useful when starting a new level.
+     * This method is optional — GameController calls it defensively.
+     */
+    public void resetTimer(int seconds) {
+        if (gameTimeline != null && timeLeft != null) {
+            gameTimeline.stop();
+            timeLeft.set(seconds);
+            gameTimeline.play();
+        }
+    }
+    public void resetLinesCleared() {
+        totalClearedRows = 0;
+        if (linesLabel != null) {
+            linesLabel.setText("Lines Cleared: 0");
+        }
+    }
+
+
     /**
      * Executes an action for each cell in a matrix
      *

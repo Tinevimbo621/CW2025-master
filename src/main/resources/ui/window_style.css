@@ -15,8 +15,8 @@
 }
 
 .gameBoard {
-    -fx-border-color: linear-gradient(#2A5058, #61a2b1);
-    -fx-border-width: 12px;
+    -fx-border-color: aqua;
+    -fx-border-width: 8px;
     -fx-border-radius: 12px;
      -fx-background-color: rgba(26, 26, 26, 0.6);
 
