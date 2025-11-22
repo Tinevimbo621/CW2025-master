@@ -1,49 +1,67 @@
 package com.comp2042.ui;
 
-import javafx.event.ActionEvent;
-import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
-import java.io.IOException;
-import java.net.URL;
 
 
 
 public class GameOverPanel extends BorderPane {
 
-    public GameOverPanel() throws IOException {
-        final Label gameOverLabel = new Label("GAME OVER");
-        gameOverLabel.getStyleClass().add("gameOverStyle");
+
+    private final Runnable onMainMenu;
+    private final Runnable onLeaderboard;
+
+    public GameOverPanel( Runnable onMainMenu, Runnable onLeaderboard) {
 
 
-        Button mainMenuButton = new Button("Main Menu");
+        this.onMainMenu = onMainMenu;
+        this.onLeaderboard = onLeaderboard;
 
-        mainMenuButton.setOnAction(this::mainMenu); // Link to the method below
+             final Label gameOverLabel = new Label("GAME OVER");
+             gameOverLabel.getStyleClass().add("gameOverStyle");
+             gameOverLabel.setMaxWidth(Double.MAX_VALUE);
+             gameOverLabel.setAlignment(Pos.CENTER);
+             gameOverLabel.setPadding(new Insets(20));
 
-       VBox contentBox = new VBox(20, gameOverLabel,  mainMenuButton);
-        contentBox.setAlignment(Pos.CENTER_RIGHT);
-        setCenter(contentBox);
-    }
 
-    public void mainMenu(ActionEvent actionEvent) {
+
+             Button mainMenuButton = new Button("Main Menu");
+             mainMenuButton.getStyleClass().add("pause-button");
+        mainMenuButton.setOnAction(e ->safeRun(onMainMenu, "main menu"));
+
+
+        Button LeaderBoardButton = new Button("Leader Board");
+             LeaderBoardButton.getStyleClass().add("pause-button");
+         LeaderBoardButton.setOnAction(e ->safeRun(onLeaderboard,"leaderboard"));
+
+
+             // Button container
+             HBox buttonBox = new HBox(20, mainMenuButton, LeaderBoardButton);
+             buttonBox.setAlignment(Pos.CENTER);
+             buttonBox.setPadding(new Insets(20));
+
+             // Main layout
+             VBox layout = new VBox(30, gameOverLabel, buttonBox);
+             layout.setAlignment(Pos.CENTER);
+             layout.setPadding(new Insets(40));
+
+             setCenter(layout);
+             setVisible(false); // Initially hidden
+
+
+         }
+    private void safeRun(Runnable action, String name) {
         try {
-            URL location = getClass().getClassLoader().getResource("ui/mainMenu.fxml");
-            FXMLLoader fxmlLoader = new FXMLLoader(location);
-            Parent root = fxmlLoader.load();
-
-            Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root, 900, 800);
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
+            action.run();
+        } catch (Exception ex) {
+            System.err.println("Error navigating to " + name + ": " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
+
 }

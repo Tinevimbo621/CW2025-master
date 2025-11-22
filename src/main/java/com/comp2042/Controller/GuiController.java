@@ -7,6 +7,7 @@ import com.comp2042.ui.GameOverPanel;
 import com.comp2042.ui.NotificationPanel;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -26,6 +27,7 @@ import javafx.scene.effect.Reflection;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -33,6 +35,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 /**
@@ -58,6 +61,25 @@ public class GuiController implements Initializable {
     private GameController gameController;
     private IntegerProperty timeLeft;
 
+    GameOverPanel gameOverPanel = new GameOverPanel(
+            () -> {
+                try {
+                    mainmenuDirect();
+                } catch (Exception e) {
+                    System.err.println("Failed to open main menu: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            },
+            () -> {
+                try {
+                    leaderBoardDirect();
+                } catch (Exception e) {
+                    System.err.println("Failed to open leaderboard: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+    );
+
     // add near other UI/game state fields
 
     private IntegerProperty timeLeftProperty; // injected from MainMenuController
@@ -77,8 +99,7 @@ public class GuiController implements Initializable {
     private Group groupNotification;
     @FXML
     private GridPane brickPanel;
-    @FXML
-    private GameOverPanel gameOverPanel;
+
     @FXML
     // for next brick in the side panel
     private GridPane nextBrickPanel;
@@ -91,7 +112,11 @@ public class GuiController implements Initializable {
     //pause button
     @FXML
     private Button pauseButton ;
-    // mainMenu button
+    @FXML
+    private StackPane rootPane;
+
+
+
     //Game State
     private Rectangle[][] displayMatrix;
     private InputEventListener eventListener;
@@ -118,7 +143,8 @@ public class GuiController implements Initializable {
             Color.BURLYWOOD,    // 7
             Color.WHITE         // default
     };
-    /**
+
+   /**
      * Initializes the controller and sets up UI components and event handlers.
      */
     @Override
@@ -195,7 +221,7 @@ public class GuiController implements Initializable {
         return code == KeyCode.LEFT || code == KeyCode.RIGHT ||
                 code == KeyCode.UP || code == KeyCode.DOWN ||
                 code == KeyCode.A || code == KeyCode.D ||
-                code == KeyCode.W || code == KeyCode.S || code == KeyCode.SHIFT;
+                    code == KeyCode.W || code == KeyCode.S || code == KeyCode.Q;
     }
 
     /**
@@ -213,7 +239,7 @@ public class GuiController implements Initializable {
             handleRotation();
         } else if (code == KeyCode.DOWN || code == KeyCode.S) {
             handleDownMovement();
-        } else if (code == KeyCode.SHIFT) {
+        } else if (code == KeyCode.Q) {
             sendHardDrop();
 
         }
@@ -266,11 +292,16 @@ public class GuiController implements Initializable {
             newGame();
         }
     }
+
     /**
      * Initializes the game over panel.
      */
+
     private void initializeGameOverPanel() {
+        rootPane.getChildren().add(gameOverPanel);
+        gameOverPanel.toFront();
         gameOverPanel.setVisible(false);
+
     }
     /**
      * Sets up visual effects for the game UI.
@@ -665,6 +696,8 @@ public class GuiController implements Initializable {
     public void gameOver() {
         gameTimeline.stop();
         gameOverPanel.setVisible(true);
+        gameOverPanel.toFront();
+
         isGameOver.set(true);
     }
     /**
@@ -750,6 +783,84 @@ public class GuiController implements Initializable {
             throw e;
         }
     }
+    /**
+     * Navigates back to the main menu (without parameters for GameOverPanel).
+     */
+    public void mainmenuDirect() throws Exception {
+        try {
+            // Create a dummy ActionEvent or use alternative navigation
+            Platform.runLater(() -> {
+                try {
+                    // Get current stage from any UI component
+                    Stage currentStage = (Stage) gamePanel.getScene().getWindow();
+                    loadMainMenuDirectly(currentStage);
+                } catch (Exception e) {
+                    handleInitializationError("Failed to load main menu", e);
+                }
+            });
+        } catch (Exception e) {
+            handleInitializationError("Failed to load main menu", e);
+            throw e;
+        }
+    }
+    /**
+     * Loads the main menu directly without requiring an ActionEvent.
+     */
+    private void loadMainMenuDirectly(Stage stage) throws Exception {
+        URL location = getClass().getClassLoader().getResource(MAIN_MENU_FXML);
+        if (location == null) {
+            throw new IOException("Cannot find main menu FXML: " + MAIN_MENU_FXML);
+        }
+
+        FXMLLoader fxmlLoader = new FXMLLoader(location);
+        Parent root = fxmlLoader.load();
+        Scene scene = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
+
+        stage.setScene(scene);
+        stage.show();
+    }
+
+
+    public  void leaderboard(ActionEvent event) throws Exception{
+       try{
+           FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/leaderboard.fxml"));
+           Parent root = loader.load();
+           Scene scene = new Scene(root);
+
+           Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+           stage.setScene(scene);
+           stage.show();
+       } catch (Exception e) {
+           handleInitializationError("Failed to load leaderboard", e);
+           throw e;
+       }
+    }
+
+    /**
+     * Navigates to the leaderboard screen (without parameters for GameOverPanel).
+     */
+    public void leaderBoardDirect() throws Exception {
+        try {
+            Platform.runLater(() -> {
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/leaderboard.fxml"));
+                    Parent root = loader.load();
+                    Scene scene = new Scene(root);
+
+                    Stage stage = (Stage) gamePanel.getScene().getWindow();
+                    stage.setScene(scene);
+                    stage.show();
+                } catch (Exception e) {
+                    handleInitializationError("Failed to load leaderboard", e);
+                }
+            });
+        } catch (Exception e) {
+            handleInitializationError("Failed to load leaderboard", e);
+            throw e;
+        }
+    }
+
+
     /**
      * Handles initialization errors gracefully.
      *

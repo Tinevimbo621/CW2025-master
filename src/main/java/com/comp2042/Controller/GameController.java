@@ -134,7 +134,7 @@ public class GameController implements InputEventListener {
     }
 
     private int getRequiredLines() {
-        return currentLevel * 1;
+        return currentLevel ;
     }
 
     private void advanceLevel() {
