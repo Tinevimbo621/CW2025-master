@@ -115,22 +115,12 @@ public class GameController implements InputEventListener {
         this.linesClearedThisLevel = 0;
         this.levelWon = false;
 
-        // ensure UI level property reflects the current level
-        try {
-            // board.getScore().levelProperty() was bound in bindGameProperties; set it here
-            board.getScore().levelProperty().set(currentLevel);
-        } catch (Exception ignored) {
-            // If Score API differs, ignore — the important part is internal level tracking.
-        }
-
         // Optionally reset timer UI to LEVEL_TIME_LIMIT_SECONDS if desired
         // Only do this if GuiController provided ability to reset. We call it defensively:
         try {
             viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
         } catch (Exception ignored) {
         }
-
-        System.out.println("Starting Level " + currentLevel + " — need " + getRequiredLines() + " lines.");
     }
 
     private int getRequiredLines() {
@@ -138,10 +128,8 @@ public class GameController implements InputEventListener {
     }
 
     private void advanceLevel() {
-        System.out.println("LEVEL " + currentLevel + " COMPLETE!");
         viewGuiController.showLevelUpNotification(currentLevel);
         currentLevel++;
-        board.getScore().levelProperty().set(currentLevel);
         startLevel();
 
         // Hook for difficulty increase (e.g., speed up board gravity). You can add:
@@ -469,8 +457,6 @@ public class GameController implements InputEventListener {
             timeLeft = viewGuiController.getTimeLeft(); // GuiController must provide this method
         } catch (Exception ignored) { }
 
-        System.out.println("Level " + currentLevel + " progress: " +
-                linesClearedThisLevel + "/" + getRequiredLines() + " lines, timeLeft=" + timeLeft);
 
         // Check win condition: required lines reached and time still remaining (>0)
         if (linesClearedThisLevel >= getRequiredLines() && timeLeft > 0) {
