@@ -75,7 +75,7 @@ public class MainMenuController {
     private static final Insets LABEL_MARGIN = new Insets(10, 10, 10, 10);
 
     // Game Mode Configuration
-    private static final int ULTRA_TIME_LIMIT_SECONDS = 120;
+    private static final int ULTRA_TIME_LIMIT_SECONDS = 50;
 
     /**
      * Enum representing different game modes with their configurations
@@ -301,20 +301,17 @@ public class MainMenuController {
      */
     private Timeline createGameTimer(IntegerProperty timeLeft, GuiController guiController) {
 
-        final Timeline[] timerRef = new Timeline[1];
         final Timeline timer = new Timeline(
                 new KeyFrame(Duration.seconds(1), e -> {
                     int currentTime = timeLeft.get();
                     if (currentTime > 0) {
                         timeLeft.set(currentTime - 1);
                     } else {
-                        timerRef[0].stop();
                         guiController.gameOver();
                     }
                 })
         );
         timer.setCycleCount(Timeline.INDEFINITE);
-        timerRef[0]=timer;
         return timer;
     }
     /**

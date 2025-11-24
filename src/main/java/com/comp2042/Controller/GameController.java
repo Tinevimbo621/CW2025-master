@@ -3,6 +3,7 @@ package com.comp2042.Controller;
 import com.comp2042.LeaderBoard.ClearRow;
 import com.comp2042.LeaderBoard.LeaderboardManager;
 import com.comp2042.LeaderBoard.ScoreEntry;
+import com.comp2042.logic.bricks.Brick;
 import com.comp2042.model.Board;
 import com.comp2042.model.DownData;
 import com.comp2042.model.SimpleBoard;
@@ -33,6 +34,9 @@ public class GameController implements InputEventListener {
     //Game state
     private final String playerName;
     private final String gameMode;
+    boolean scoreSaved = false;
+
+
 
     // New level-related state
     private int currentLevel = 1;
@@ -251,8 +255,12 @@ public class GameController implements InputEventListener {
     /**
      * Handles game over state.
      */
-    private void handleGameOver() {
-        saveScoreToLeaderboard();
+   public void handleGameOver() {
+
+       if (!scoreSaved) {
+           saveScoreToLeaderboard();
+           scoreSaved = true;
+       }
         viewGuiController.gameOver();
     }
 
@@ -401,7 +409,7 @@ public class GameController implements InputEventListener {
     /**
      * Saves the current score to the leaderboard.
      */
-    private void saveScoreToLeaderboard() {
+    public void saveScoreToLeaderboard() {
 
       IntegerProperty finalScore =board.getScore().scoreProperty();
         try {
@@ -624,6 +632,24 @@ public class GameController implements InputEventListener {
 
         // 4. Reset line requirement
         viewGuiController.resetLinesCleared();
+    }
+
+    @Override
+    public ViewData onHoldEvent(MoveEvent event) {
+        try {
+            board.holdBrick();
+
+            // Update GUI held preview and return updated ViewData
+            ViewData view = board.getViewData();
+            viewGuiController.updateHeldBrick(view.getHeldBrickData());
+            // If createNewBrick caused a game over, createNewBrick() returns true and GameController
+            // caller flow should detect that earlier (e.g., handleBlockedMove). If needed, also
+            // check for immediate collision after swap in SimpleBoard (not implemented here).
+            return view;
+        } catch (Exception e) {
+            handleGameError("Error during brick hold", e);
+            return board.getViewData();
+        }
     }
 
 }

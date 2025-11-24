@@ -43,11 +43,16 @@
           <Label fx:id="scoreLabel" styleClass="scoreClass" text="0" />
 
           <Label styleClass="nextBrickLabel" text="Next:" />
+
           <VBox fx:id="nextBricksPanel" spacing="20" alignment="CENTER"  prefHeight="100" prefWidth="100" style="-fx-border-color: white; -fx-border-width: 2;" >
+
+
           </VBox>
 
           <Label styleClass="scoreClass" text="Level:" />
           <Label fx:id="levelLabel" styleClass="scoreClass" text="1" visible="false"/>
+          <Label styleClass="nextBrickLabel" text="Hold" />
+          <GridPane fx:id="holdPanel" />
       </VBox>
 
   </HBox>

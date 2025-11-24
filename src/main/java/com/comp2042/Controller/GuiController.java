@@ -60,6 +60,7 @@ public class GuiController implements Initializable {
     // File paths
     private static final String FONT_PATH = "digital.ttf";
     private static final String MAIN_MENU_FXML = "ui/mainMenu.fxml";
+    public GridPane holdPanel;
     private GameController gameController;
     private IntegerProperty timeLeft;
 
@@ -223,7 +224,7 @@ public class GuiController implements Initializable {
         return code == KeyCode.LEFT || code == KeyCode.RIGHT ||
                 code == KeyCode.UP || code == KeyCode.DOWN ||
                 code == KeyCode.A || code == KeyCode.D ||
-                    code == KeyCode.W || code == KeyCode.S || code == KeyCode.Q;
+                    code == KeyCode.W || code == KeyCode.S || code == KeyCode.Q||code == KeyCode.C;
     }
 
     /**
@@ -243,8 +244,11 @@ public class GuiController implements Initializable {
             handleDownMovement();
         } else if (code == KeyCode.Q) {
             sendHardDrop();
+        }else if(code == KeyCode.C){
+                holdCurrentBrick();
+            }
 
-        }
+
         keyEvent.consume();
     }
     private void sendHardDrop() {
@@ -255,6 +259,43 @@ public class GuiController implements Initializable {
             refreshBrick(data);
         }
     }
+    // call this in key handler (you already call holdCurrentBrick())
+    private void holdCurrentBrick() {
+        if (eventListener == null) return;
+        ViewData view = eventListener.onHoldEvent(
+                // note: your InputEventListener interface may not accept arguments for onHoldEvent;
+                // if it doesn't, make sure its signature matches (no params). Here we assume no params.
+                new MoveEvent(EventType.HOLD, EventSource.USER) // optional if your interface requires event
+        );
+        // refresh brick/ghost/next/held displays
+        refreshBrick(view);
+        updateNextShapesPreview(view.getNextBricksData());
+        updateHeldBrick(view.getHeldBrickData());
+    }
+
+    public void updateHeldBrick(int[][] heldMatrix) {
+        // clear hold panel
+        if (holdPanel == null) return;
+        holdPanel.getChildren().clear();
+
+        if (heldMatrix == null) return;
+
+        GridPane panel = new GridPane();
+        panel.setHgap(2);
+        panel.setVgap(2);
+
+        for (int r = 0; r < heldMatrix.length; r++) {
+            for (int c = 0; c < heldMatrix[r].length; c++) {
+                if (heldMatrix[r][c] != 0) {
+                    Rectangle block = new Rectangle(NEXT_BRICK_CELL_SIZE, NEXT_BRICK_CELL_SIZE);
+                    block.setFill(getFillColor(heldMatrix[r][c]));
+                    panel.add(block, c, r);
+                }
+            }
+        }
+        holdPanel.getChildren().add(panel);
+    }
+
 
 
     /**
@@ -598,6 +639,11 @@ public class GuiController implements Initializable {
      * @param event The move event
      */
     private void moveDown(MoveEvent event) {
+        if (isGameOver.get() ){
+            gameController.handleGameOver();
+            return;
+        }
+
         if (!isPaused.get()) {
             DownData downData = eventListener.onDownEvent(event);
             handleClearRowEvents(downData);

@@ -20,6 +20,9 @@ public class SimpleBoard implements Board {
     private Point currentOffset;
     private final Score score;
     private final Score level ;
+    private Brick currentBrick;
+    private Brick heldBrick = null;          // held piece slot
+    private boolean holdUsedThisTurn = false;
     // Queue of next 3 bricks
     private final List<Brick> nextBricks = new ArrayList<>();
 
@@ -98,12 +101,13 @@ public class SimpleBoard implements Board {
 
         //Brick currentBrick = brickGenerator.getBrick();
         //make next brick currenct brick
-            Brick currentBrick = nextBricks.remove(0);
+            Brick newCurrent = nextBricks.remove(0);
 
         // Add a new generated brick to the queue
         nextBricks.add(brickGenerator.getBrick());
 
         // Assign active brick
+        this.currentBrick = newCurrent;
         brickRotator.setBrick(currentBrick);
 
         // Starting offset
@@ -119,6 +123,10 @@ public class SimpleBoard implements Board {
                 (int) currentOffset.getX(),
                 (int) currentOffset.getY()
         );
+        if (!conflict) {
+            // Allow hold again for the newly spawned piece
+            holdUsedThisTurn = false;
+        }
 
         return conflict; // true = game over
     }
@@ -140,12 +148,13 @@ public class SimpleBoard implements Board {
        for (int i = 0; i < nextBricks.size(); i++) {
            nextShapesMatrix[i] = nextBricks.get(i).getShapeMatrix().get(0);
        }
-
+       int[][] held = getHeldBrickData();
        return new ViewData(
                brickRotator.getCurrentShape(),
                (int) currentOffset.getX(),
                (int) currentOffset.getY(),
-               nextShapesMatrix
+               nextShapesMatrix,
+               held
        );
    }
 
@@ -180,6 +189,48 @@ public class SimpleBoard implements Board {
         createNewBrick();
     }
 
+    /**
+     * Hold the current active brick.
+     * If no brick held yet -> store current and spawn next.
+     * If a brick is held -> swap held with current.
+     * Holding twice in same turn is prevented.
+     */
+    public void holdBrick() {
+        // If already used hold this turn, ignore
+        if (holdUsedThisTurn) return;
+        if (currentBrick == null) return;
 
+        holdUsedThisTurn = true;
+
+        if (heldBrick == null) {
+            // First time holding: store current, spawn next
+            heldBrick = currentBrick;
+            // spawn next piece (createNewBrick uses nextBricks queue)
+            // If createNewBrick reports game over, caller should handle it
+            createNewBrick();
+        } else {
+            // Swap current <-> held
+            Brick tmp = heldBrick;
+            heldBrick = currentBrick;
+            currentBrick = tmp;
+
+            // give the new current to the rotator and reset position
+            brickRotator.setBrick(currentBrick);
+            currentOffset = new Point(6, 0);
+
+            // If swapped-in piece collides immediately, it's game over (let caller handle)
+            // We can return but createNewBrick isn't called here.
+        }
+    }
+
+    /**
+     * Return the held brick's primary shape matrix for UI preview.
+     * null if nothing held.
+     */
+    public int[][] getHeldBrickData() {
+        if (heldBrick == null) return null;
+        // assume getShapeMatrix().get(0) is the canonical orientation used for previews
+        return heldBrick.getShapeMatrix().get(0);
+    }
 
 }
