@@ -8,6 +8,7 @@ import com.comp2042.ui.NotificationPanel;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -28,6 +29,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -102,7 +104,7 @@ public class GuiController implements Initializable {
 
     @FXML
     // for next brick in the side panel
-    private GridPane nextBrickPanel;
+    private VBox nextBricksPanel;
     // to show score on the side panel
     @FXML
     private Label scoreLabel ;
@@ -688,8 +690,12 @@ public class GuiController implements Initializable {
      * @param levelProperty The level property to bind
      */
     public void bindLevel(IntegerProperty levelProperty) {
-        levelLabel.textProperty().bind(levelProperty.asString("%d"));
+            levelLabel.textProperty().bind(levelProperty.asString("%d"));
     }
+    public Label getLevelLabel() {
+        return levelLabel;
+    }
+
     /**
      * Handles game over state.
      */
@@ -721,20 +727,27 @@ public class GuiController implements Initializable {
     /**
      * Updates the next shape preview panel.
      *
-     * @param nextShapeMatrix The matrix for the next shape
+     * @param nextShapesMatrix The matrix for the next shapes
      */
-    public void updateNextShapePreview(int[][] nextShapeMatrix) {
-        nextBrickPanel.getChildren().clear();
-        int cellSize = BRICK_SIZE;
+    public void updateNextShapesPreview(int[][][] nextShapesMatrix) {
+        nextBricksPanel.getChildren().clear();
 
-        for (int row = 0; row < nextShapeMatrix.length; row++) {
-            for (int col = 0; col < nextShapeMatrix[row].length; col++) {
-                if (nextShapeMatrix[row][col] != 0) {
-                    Rectangle block = new Rectangle(cellSize, cellSize);
-                    block.setFill(getFillColor(nextShapeMatrix[row][col]));
-                    nextBrickPanel.add(block, col, row);
+        for (int[][] shapeMatrix : nextShapesMatrix) {
+            GridPane panel = new GridPane();
+            panel.setHgap(2);
+            panel.setVgap(2);
+
+            for (int r = 0; r < shapeMatrix.length; r++) {
+                for (int c = 0; c < shapeMatrix[r].length; c++) {
+                    if (shapeMatrix[r][c] != 0) {
+                        Rectangle block = new Rectangle(BRICK_SIZE, BRICK_SIZE);
+                        block.setFill(getFillColor(shapeMatrix[r][c]));
+                        panel.add(block, c, r);
+                    }
                 }
             }
+
+            nextBricksPanel.getChildren().add(panel);
         }
     }
 
@@ -996,6 +1009,7 @@ public class GuiController implements Initializable {
             }
         }
     }
+
 
     @FunctionalInterface
     interface CellAction {

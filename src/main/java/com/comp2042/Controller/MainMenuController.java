@@ -64,6 +64,11 @@ public class MainMenuController {
     private static final double SCENE_WIDTH = 800.0;
     private static final double SCENE_HEIGHT = 800.0;
 
+    private final IntegerProperty levelProperty = new SimpleIntegerProperty(1);
+
+
+
+
     // UI Styling Constants
     private static final String TIMER_LABEL_STYLE = "-fx-font-size: 40px; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-family: Let's go Digital;";
     private static final String LINES_LABEL_STYLE = "-fx-font-size: 25px; -fx-text-fill: black; -fx-font-weight: bold;";
@@ -75,7 +80,7 @@ public class MainMenuController {
     /**
      * Enum representing different game modes with their configurations
      */
-     private enum GameMode {
+    private enum GameMode {
         MARATHON("Marathon", "Endless play.\n\nGoal: Survive as long as possible.\nNo timer.\nLines increase your score.", false, false),
         SPRINT("Sprint", "Sprint Mode\n\nGoal: Clear lines equal to the level you are in.\nTimer:1 20 seconds.\nClearing lines extends progress.", true  , true),
         ULTRA("Ultra",  "Ultra Mode\n\nScore as many points as possible within the time limit.\nThis is a fast-scoring challenge.\nTimer: 120 seconds.", true, false);
@@ -231,14 +236,24 @@ public class MainMenuController {
      */
     private void applyModeSpecificFeatures(GuiController guiController, Scene gameScene, GameMode mode) {
         StackPane root = (StackPane) gameScene.getRoot();
-
         if (mode.hasTimer()) {
             setupTimerFeature(guiController, root);
+
+            // TIMER MODE → hide and unbind level label completely
+            guiController.getLevelLabel().textProperty().unbind();
+            guiController.getLevelLabel().setVisible(false);
+        }
+        else {
+            // NORMAL LEVEL MODE → show AND bind
+            guiController.getLevelLabel().setVisible(true);
+
+            guiController.bindLevel(levelProperty);
         }
 
         if (mode.hasLineCounter()) {
             setupLineCounterFeature(guiController, root);
         }
+
     }
 
     /**
@@ -285,17 +300,21 @@ public class MainMenuController {
      * @return Configured Timeline for the game timer
      */
     private Timeline createGameTimer(IntegerProperty timeLeft, GuiController guiController) {
+
+        final Timeline[] timerRef = new Timeline[1];
         final Timeline timer = new Timeline(
                 new KeyFrame(Duration.seconds(1), e -> {
                     int currentTime = timeLeft.get();
                     if (currentTime > 0) {
                         timeLeft.set(currentTime - 1);
                     } else {
+                        timerRef[0].stop();
                         guiController.gameOver();
                     }
                 })
         );
         timer.setCycleCount(Timeline.INDEFINITE);
+        timerRef[0]=timer;
         return timer;
     }
     /**

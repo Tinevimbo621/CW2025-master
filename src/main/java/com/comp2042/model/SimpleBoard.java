@@ -6,6 +6,9 @@ import com.comp2042.logic.bricks.BrickGenerator;
 import com.comp2042.logic.bricks.RandomBrickGenerator;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class SimpleBoard implements Board {
 
@@ -17,8 +20,8 @@ public class SimpleBoard implements Board {
     private Point currentOffset;
     private final Score score;
     private final Score level ;
-    //next brick
-    private Brick nextBrick;
+    // Queue of next 3 bricks
+    private final List<Brick> nextBricks = new ArrayList<>();
 
 
     public SimpleBoard(int width, int height) {
@@ -29,6 +32,9 @@ public class SimpleBoard implements Board {
         brickRotator = new BrickRotator();
         score = new Score();
         level = new Score();
+        for (int i = 0; i < 3; i++) {
+            nextBricks.add(brickGenerator.getBrick());
+        }
     }
 
     @Override
@@ -92,26 +98,21 @@ public class SimpleBoard implements Board {
 
         //Brick currentBrick = brickGenerator.getBrick();
         //make next brick currenct brick
-            Brick currentBrick;
+            Brick currentBrick = nextBricks.remove(0);
 
-            //  to prevent nulls
-        if (nextBrick == null) {
-            currentBrick = brickGenerator.getBrick();
-        } else {
-            currentBrick = nextBrick;
-        }
-        nextBrick = brickGenerator.getBrick();
-        if (currentBrick == null || nextBrick == null) {
-            System.err.println("BrickGenerator returned null!");
-            return true; // force game over
-        }
-        // Assign it before intersecting
-            brickRotator.setBrick(currentBrick);
-            currentOffset = new Point(6, 0); // start higher on the board
+        // Add a new generated brick to the queue
+        nextBricks.add(brickGenerator.getBrick());
 
-            int[][] shape = brickRotator.getCurrentShape();
+        // Assign active brick
+        brickRotator.setBrick(currentBrick);
 
-// Check if the new brick overlaps existing blocks (means game over)
+        // Starting offset
+        currentOffset = new Point(6, 0);
+
+        // Shape for collision testing
+        int[][] shape = brickRotator.getCurrentShape();
+
+        // Check if spawning overlaps existing blocks
         boolean conflict = MatrixOperations.intersect(
                 currentGameMatrix,
                 shape,
@@ -134,15 +135,17 @@ public class SimpleBoard implements Board {
    // }
    @Override
    public ViewData getViewData() {
-       int[][] nextShapeMatrix = (nextBrick != null)
-               ? nextBrick.getShapeMatrix().get(0)
-               : new int[0][0];
+       int[][][] nextShapesMatrix = new int[nextBricks.size()][][];
+
+       for (int i = 0; i < nextBricks.size(); i++) {
+           nextShapesMatrix[i] = nextBricks.get(i).getShapeMatrix().get(0);
+       }
 
        return new ViewData(
                brickRotator.getCurrentShape(),
                (int) currentOffset.getX(),
                (int) currentOffset.getY(),
-               nextShapeMatrix
+               nextShapesMatrix
        );
    }
 
@@ -169,6 +172,11 @@ public class SimpleBoard implements Board {
     public void newGame() {
         currentGameMatrix = new int[width][height];
         score.reset();
+
+        nextBricks.clear();
+        for (int i = 0; i < 3; i++) {
+            nextBricks.add(brickGenerator.getBrick());
+        }
         createNewBrick();
     }
 

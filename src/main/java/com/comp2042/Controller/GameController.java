@@ -260,7 +260,7 @@ public class GameController implements InputEventListener {
      * Updates the next brick preview in the UI.
      */
     private void updateNextBrickPreview() {
-        viewGuiController.updateNextShapePreview(board.getViewData().getNextBrickData());
+        viewGuiController.updateNextShapesPreview(board.getViewData().getNextBricksData());
     }
 
     /**
@@ -367,8 +367,8 @@ public class GameController implements InputEventListener {
             if (board.createNewBrick()) {
                 handleGameOver();
             } else {
-                viewGuiController.updateNextShapePreview(
-                        board.getViewData().getNextBrickData()
+                viewGuiController.updateNextShapesPreview(
+                        board.getViewData().getNextBricksData()
                 );
             }
 
