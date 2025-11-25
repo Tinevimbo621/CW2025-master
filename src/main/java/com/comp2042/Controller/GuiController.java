@@ -126,6 +126,7 @@ public class GuiController implements Initializable {
     private Rectangle[][] rectangles;
     // matrix for the ghost
     private Rectangle[][] ghostMatrix;
+
     private Timeline gameTimeline;
     private Label linesLabel;
     private int totalClearedRows = 0 ;
@@ -1017,7 +1018,7 @@ public class GuiController implements Initializable {
 
     public void setTimeLeftProperty(IntegerProperty timeLeft ,Timeline timer) {
         this.timeLeft = timeLeft;
-        this.gameTimeline = timer ;
+
     }
 
     public int getTimeLeft() {

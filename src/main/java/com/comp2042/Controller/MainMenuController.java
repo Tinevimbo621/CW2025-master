@@ -64,7 +64,6 @@ public class MainMenuController {
     private static final double SCENE_WIDTH = 800.0;
     private static final double SCENE_HEIGHT = 800.0;
 
-    private final IntegerProperty levelProperty = new SimpleIntegerProperty(1);
 
 
 
@@ -240,14 +239,12 @@ public class MainMenuController {
             setupTimerFeature(guiController, root);
 
             // TIMER MODE → hide and unbind level label completely
-            guiController.getLevelLabel().textProperty().unbind();
             guiController.getLevelLabel().setVisible(false);
         }
         else {
             // NORMAL LEVEL MODE → show AND bind
             guiController.getLevelLabel().setVisible(true);
 
-            guiController.bindLevel(levelProperty);
         }
 
         if (mode.hasLineCounter()) {

@@ -59,10 +59,18 @@ public class GameController implements InputEventListener {
 
         // Let the GuiController know about this controller so it can forward events
         this.viewGuiController.setGameController(this);
-        viewGuiController.setOnLevelComplete(() -> handleLevelComplete());
-
+        viewGuiController.setOnLevelComplete(() ->{
+            if (isSprintMode()) {
+                handleLevelComplete();
+            }
+        });
         initializeGame();
 
+    }
+
+
+    private boolean isSprintMode() {
+        return "Sprint".equalsIgnoreCase(gameMode);
     }
 
     /**
@@ -116,6 +124,7 @@ public class GameController implements InputEventListener {
     /* ---------- level system ---------- */
 
     private void startLevel() {
+        if (!isSprintMode()) return;
         this.linesClearedThisLevel = 0;
         this.levelWon = false;
 
@@ -128,10 +137,11 @@ public class GameController implements InputEventListener {
     }
 
     private int getRequiredLines() {
-        return currentLevel ;
+        return isSprintMode() ? currentLevel : Integer.MAX_VALUE;
     }
 
     private void advanceLevel() {
+        if (!isSprintMode()) return;
         viewGuiController.showLevelUpNotification(currentLevel);
         currentLevel++;
         startLevel();
@@ -622,14 +632,12 @@ public class GameController implements InputEventListener {
     }
     private void handleLevelComplete() {
         // 1. Restart the timer
-        viewGuiController.resetTimer(120);
+        viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
 
         // 2. Increase level to 2
-        board.getScore().levelProperty().set(2);
+        board.getScore().levelProperty().set(board.getScore().getLevel() + 1);
 
-        // 3. Show notification
-        viewGuiController.showLevelUpNotification(2);
-
+        viewGuiController.showLevelUpNotification(board.getScore().getLevel());
         // 4. Reset line requirement
         viewGuiController.resetLinesCleared();
     }
