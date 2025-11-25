@@ -17,8 +17,8 @@ import javafx.beans.property.IntegerProperty;
 public class GameController implements InputEventListener {
 
     // Game constants
-    private static final int BOARD_WIDTH = 39;
-    private static final int BOARD_HEIGHT = 23;
+    private static final int BOARD_WIDTH = 14;
+    private static final int BOARD_HEIGHT = 30;
     private static final int USER_DROP_SCORE_BONUS = 1;
     private static final String DEFAULT_PLAYER_NAME = "Unknown Player";
     // Level/timing constants
@@ -35,6 +35,7 @@ public class GameController implements InputEventListener {
     private final String playerName;
     private final String gameMode;
     boolean scoreSaved = false;
+    private int comboCount = 0;
 
 
 
@@ -377,7 +378,13 @@ public class GameController implements InputEventListener {
             ClearRow clearRow = board.clearRows();
             if (clearRow != null && clearRow.getLinesRemoved() > 0) {
                 board.getScore().add(clearRow.getScoreBonus());
+                comboCount++;
+                int comboBonus = comboCount * 25;
+                board.getScore().add(comboBonus);
                 viewGuiController.updateLinesCleared(clearRow.getLinesRemoved());
+                viewGuiController.showComboNotification(comboCount, comboBonus);
+            }else {
+                comboCount = 0;
             }
 
 
@@ -564,6 +571,7 @@ public class GameController implements InputEventListener {
          */
         private int findMaximumDropDistance(int[][] shape, int x, int y, int[][] grid) {
             int maxDrop = 0;
+
 
             while (canPlaceShape(shape, x, y + maxDrop + 1, grid)) {
                 maxDrop++;

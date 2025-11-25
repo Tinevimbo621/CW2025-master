@@ -19,9 +19,13 @@ public class MatrixOperations {
     public static boolean intersect(final int[][] matrix, final int[][] brick, int x, int y) {
         for (int i = 0; i < brick.length; i++) {
             for (int j = 0; j < brick[i].length; j++) {
-                int targetX = x + i;
-                int targetY = y + j;
-                if (brick[j][i] != 0 && (checkOutOfBound(matrix, targetX, targetY) || matrix[targetY][targetX] != 0)) {
+
+                if (brick[i][j] == 0)
+                    continue;
+                int targetX = x + j;
+                int targetY = y + i;
+
+                if (checkOutOfBound(matrix, targetX, targetY) || matrix[targetY][targetX] != 0) {
                     return true;
                 }
             }
@@ -47,20 +51,24 @@ public class MatrixOperations {
         }
         return myInt;
     }
-
     public static int[][] merge(int[][] filledFields, int[][] brick, int x, int y) {
         int[][] copy = copy(filledFields);
-        for (int i = 0; i < brick.length; i++) {
-            for (int j = 0; j < brick[i].length; j++) {
-                int targetX = x + i;
-                int targetY = y + j;
-                if (brick[j][i] != 0) {
-                    copy[targetY][targetX] = brick[j][i];
-                }
+
+        for (int row = 0; row < brick.length; row++) {
+            for (int col = 0; col < brick[row].length; col++) {
+
+                if (brick[row][col] == 0)
+                    continue;
+
+                int targetX = x + col;
+                int targetY = y + row;
+
+                copy[targetY][targetX] = brick[row][col];
             }
         }
         return copy;
     }
+
 
     public static ClearRow checkRemoving(final int[][] matrix) {
         int[][] tmp = new int[matrix.length][matrix[0].length];
@@ -91,6 +99,7 @@ public class MatrixOperations {
             }
         }
         int scoreBonus = 50 * clearedRows.size() * clearedRows.size();
+
         return new ClearRow(clearedRows.size(), tmp, scoreBonus);
     }
 

@@ -1,6 +1,7 @@
 package com.comp2042.Controller;
 
 
+import com.comp2042.audio.SoundManager;
 import com.comp2042.ui.NotificationPanel;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -54,6 +55,23 @@ public class MainMenuController {
     @FXML
     private Group groupNotification;
     @FXML
+
+    private Button soundButton;
+
+    private boolean soundEnabled = true;
+
+
+    @FXML
+    private void toggleSound() {
+        soundEnabled = !soundEnabled;
+        soundButton.setText(soundEnabled ? "Sound: ON" : "Sound: OFF");
+
+        if (soundEnabled) {
+            SoundManager.playBackground();
+        } else {
+            SoundManager.pauseBackground();
+        }
+    }
 
     //Constants
 
@@ -110,6 +128,9 @@ public class MainMenuController {
         try {
             setupBackgroundImage();
             setupButtonHandlers();
+            SoundManager.initBackground("/sounds/background.mp3");
+            SoundManager.playBackground();
+            soundButton.setText("Sound: ON");
         } catch (Exception e) {
             logError("Failed to initialize MainMenuController", e);
         }

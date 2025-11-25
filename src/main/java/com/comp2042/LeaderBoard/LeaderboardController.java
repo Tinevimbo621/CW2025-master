@@ -12,10 +12,18 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+
+
 /**Generates the leader board table ,loads the entries and allows to go back to main menu after viewing the leader board */
 public class LeaderboardController {
+
+    private static final String MAIN_MENU_FXML = "ui/mainMenu.fxml";
+    private static final double SCENE_WIDTH = 900.0;
+    private static final double SCENE_HEIGHT = 800.0;
 
     @FXML private TableView<ScoreEntry> table;
     @FXML private TableColumn<ScoreEntry, Number> colRank;
@@ -52,10 +60,26 @@ public class LeaderboardController {
         table.setItems(FXCollections.observableArrayList(entries));
     }
 
-    public void backToMenu(ActionEvent event) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        stage.setScene(new Scene(root));
+        @FXML
+    private void backToMenu(ActionEvent actionEvent) throws Exception {
+        URL location = getClass().getClassLoader().getResource(MAIN_MENU_FXML);
+        FXMLLoader fxmlLoader = new FXMLLoader(location);
+        Parent root = fxmlLoader.load();
+
+        Stage stage = getCurrentStage(actionEvent);
+        Scene scene = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
+
+        stage.setScene(scene);
         stage.show();
+    }
+
+    /**
+     * Gets the current stage from the action event.
+     *
+     * @param actionEvent The action event
+     * @return The current stage
+     */
+    private Stage getCurrentStage(ActionEvent actionEvent) {
+        return (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
     }
 }

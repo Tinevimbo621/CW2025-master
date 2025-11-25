@@ -1,6 +1,7 @@
 package com.comp2042.Controller;
 
 import com.comp2042.LeaderBoard.ClearRow;
+import com.comp2042.audio.SoundManager;
 import com.comp2042.model.DownData;
 import com.comp2042.model.ViewData;
 import com.comp2042.ui.GameOverPanel;
@@ -30,6 +31,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -53,7 +56,7 @@ public class GuiController implements Initializable {
     private static final double GAME_SPEED_MILLIS = 400;
     private static final double GHOST_OPACITY = 0.3;
     private static final int BRICK_CORNER_ARC = 9;
-    private static final int NEXT_BRICK_CELL_SIZE = 20;
+    private static final int NEXT_BRICK_CELL_SIZE = BRICK_SIZE;
     private static final double SCENE_WIDTH = 900.0;
     private static final double SCENE_HEIGHT = 800.0;
 
@@ -1042,6 +1045,16 @@ public class GuiController implements Initializable {
         }
     }
 
+    public void showComboNotification(int combo, int bonus) {
+        String message = "COMBO x" + combo + "  (+" + bonus + ")";
+        NotificationPanel panel = new NotificationPanel(message);
+
+        ObservableList<Node> children = groupNotification.getChildren();
+        children.add(panel);
+
+        // Reuse the same animation as level-up
+        panel.showScore(children);
+    }
 
     /**
      * Executes an action for each cell in a matrix

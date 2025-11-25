@@ -3,27 +3,28 @@
 <!--Pane does not auto resize the game so ,I am changing to stackPane which will center my tetris board automatically and allow resizing-->
 <!--StackPane is my black background which fills the entire window-->
 
+<?import java.net.*?>
+<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.Group?>
 <?import javafx.scene.layout.*?>
-<?import java.net.URL?>
-<StackPane fx:id="rootPane" styleClass="rootPane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.comp2042.Controller.GuiController">
+
+<StackPane fx:id="rootPane" styleClass="rootPane" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.comp2042.Controller.GuiController">
 
   <!--Adding Hbox so my side panel and game lie next to each other-->
   <HBox alignment="CENTER" spacing="40">
 
       <VBox fx:id="pause" spacing="30">
           <Button fx:id="pauseButton" onAction="#pauseGame" styleClass="pause-button" text="Pause" />
-          <Button fx:id="mainmenuButton" onAction="#mainMenu" styleClass="pause-button" text="Main Menu" />
+          <Button fx:id="mainmenuButton" onAction="#mainMenu" prefHeight="40.0" prefWidth="98.0" styleClass="pause-button" text="Main Menu" />
 
       </VBox>
       <!--Anchor pane is my tetris area which stays centered and locked-->
-       <AnchorPane fx:id="rootContainer" maxHeight="800" maxWidth="500" minHeight="800" minWidth="500" prefHeight="800" prefWidth="500" styleClass="gameContainer">
+       <AnchorPane fx:id="rootContainer" maxHeight="600" maxWidth="300" minHeight="600" minWidth="300" prefHeight="600" prefWidth="300" styleClass="gameContainer">
 
-        <GridPane fx:id="brickPanel" hgap="1" layoutX="600" layoutY="100" vgap="1" />
+        <GridPane fx:id="brickPanel" hgap="1" vgap="1" />
         <BorderPane fx:id="gameBoard" styleClass="gameBoard" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
           <center>
-              <GridPane fx:id="gamePanel" alignment="CENTER" hgap="1" layoutX="50" layoutY="50" vgap="1" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" /><!--aligning game panel to center-->
+              <GridPane fx:id="gamePanel" alignment="CENTER" hgap="1" vgap="1" /><!--aligning game panel to center-->
          </center>
 
               </BorderPane>
@@ -44,13 +45,13 @@
 
           <Label styleClass="nextBrickLabel" text="Next:" />
 
-          <VBox fx:id="nextBricksPanel" spacing="20" alignment="CENTER"  prefHeight="100" prefWidth="100" style="-fx-border-color: white; -fx-border-width: 2;" >
+          <VBox fx:id="nextBricksPanel" alignment="CENTER" prefHeight="100" prefWidth="100" spacing="20" style="-fx-border-color: white; -fx-border-width: 2;">
 
 
           </VBox>
 
           <Label styleClass="scoreClass" text="Level:" />
-          <Label fx:id="levelLabel" styleClass="scoreClass" text="1" visible="false"/>
+          <Label fx:id="levelLabel" styleClass="scoreClass" text="1" visible="false" />
           <Label styleClass="nextBrickLabel" text="Hold" />
           <GridPane fx:id="holdPanel" />
       </VBox>

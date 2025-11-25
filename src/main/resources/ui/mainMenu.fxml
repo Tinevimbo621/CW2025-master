@@ -30,6 +30,10 @@
                 maxWidth="300.0" />
 
         <Button fx:id="leaderBoardButton" prefHeight="30.0" prefWidth="200.0" styleClass="menu-button" text="Leader Board" onAction="#openLeaderboard" />
+        <Button fx:id="soundButton"
+                text="Sound: ON"
+                onAction="#toggleSound"
+                styleClass="menu-button"/>
         <Button fx:id="exitButton" prefHeight="30.0" prefWidth="80.0" styleClass="menu-button" text="Exit"  />
 
     </VBox>

@@ -12,8 +12,7 @@ import java.util.List;
 
 public class SimpleBoard implements Board {
 
-    private final int width;
-    private final int height;
+    private final int width,height;
     private final BrickGenerator brickGenerator;
     private final BrickRotator brickRotator;
     private int[][] currentGameMatrix;
@@ -30,7 +29,7 @@ public class SimpleBoard implements Board {
     public SimpleBoard(int width, int height) {
         this.width = width;
         this.height = height;
-        currentGameMatrix = new int[width][height];
+        currentGameMatrix = new int[height][width];
         brickGenerator = new RandomBrickGenerator();
         brickRotator = new BrickRotator();
         score = new Score();
@@ -110,11 +109,17 @@ public class SimpleBoard implements Board {
         this.currentBrick = newCurrent;
         brickRotator.setBrick(currentBrick);
 
-        // Starting offset
-        currentOffset = new Point(6, 0);
-
         // Shape for collision testing
         int[][] shape = brickRotator.getCurrentShape();
+
+
+        // Starting offset
+
+        currentOffset = new Point((width - brickRotator.getCurrentShape()[0].length) / 2, 0);
+
+
+
+
 
         // Check if spawning overlaps existing blocks
         boolean conflict = MatrixOperations.intersect(
@@ -179,8 +184,7 @@ public class SimpleBoard implements Board {
 
     @Override
     public void newGame() {
-        currentGameMatrix = new int[width][height];
-        score.reset();
+        currentGameMatrix = new int[height][width];
 
         nextBricks.clear();
         for (int i = 0; i < 3; i++) {
