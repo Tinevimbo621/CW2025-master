@@ -87,8 +87,8 @@ public class MainMenuController {
 
 
     // UI Styling Constants
-    private static final String TIMER_LABEL_STYLE = "-fx-font-size: 40px; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-family: Let's go Digital;";
-    private static final String LINES_LABEL_STYLE = "-fx-font-size: 25px; -fx-text-fill: black; -fx-font-weight: bold;";
+    private static final String TIMER_LABEL_STYLE = "-fx-font-size: 40px; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\";";
+    private static final String LINES_LABEL_STYLE = "-fx-font-size: 25px; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\";";
     private static final Insets LABEL_MARGIN = new Insets(10, 10, 10, 10);
 
     // Game Mode Configuration
@@ -342,7 +342,7 @@ public class MainMenuController {
         Label linesLabel = createLinesLabel();
 
         root.getChildren().add(linesLabel);
-        StackPane.setAlignment(linesLabel, Pos.BOTTOM_RIGHT);
+        StackPane.setAlignment(linesLabel, Pos.BOTTOM_LEFT);
         StackPane.setMargin(linesLabel, LABEL_MARGIN);
 
         guiController.setLinesLabel(linesLabel);

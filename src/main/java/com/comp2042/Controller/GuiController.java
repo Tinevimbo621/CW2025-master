@@ -23,12 +23,14 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.Reflection;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
@@ -348,7 +350,8 @@ public class GuiController implements Initializable {
         rootPane.getChildren().add(gameOverPanel);
         gameOverPanel.toFront();
         gameOverPanel.setVisible(false);
-
+       // Allow clicks to pass through when not visible
+        gameOverPanel.setMouseTransparent(true);
     }
     /**
      * Sets up visual effects for the game UI.
@@ -709,12 +712,15 @@ public class GuiController implements Initializable {
      * @param newLevel The completed level
      */
     public void showLevelUpNotification(int newLevel) {
-        NotificationPanel panel = new NotificationPanel("LEVEL " + newLevel + " COMPLETE!");
+        int nextLevel = newLevel + 1 ;
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Level Complete");
+            alert.setHeaderText(null);
+            alert.setContentText("You've completed Level " + newLevel + "!. Clear " + nextLevel +"rows to complete next level");
+            alert.show();
+        });
 
-        ObservableList<Node> children = groupNotification.getChildren();
-        children.add(panel);
-
-        panel.showScore(children); // same animation logic
     }
 
 
@@ -807,11 +813,12 @@ public class GuiController implements Initializable {
      *
      * @param actionEvent The action event
      */
+    @FXML
     public void pauseGame(ActionEvent actionEvent) {
         if (isPaused.get()) {
             resumeGame();
         } else {
-            pauseGame();
+            pauseGameInternal();
         }
         gamePanel.requestFocus();
     }
@@ -827,7 +834,7 @@ public class GuiController implements Initializable {
     /**
      * Pauses the game.
      */
-    private void pauseGame() {
+    private void pauseGameInternal() {
         gameTimeline.pause();
         pauseButton.setText("Resume");
         isPaused.set(true);
@@ -838,6 +845,7 @@ public class GuiController implements Initializable {
      * @param actionEvent The action event
      * @throws Exception If loading the main menu fails
      */
+    @FXML
     public void mainMenu(ActionEvent actionEvent) throws Exception {
         try {
             loadMainMenu(actionEvent);

@@ -93,6 +93,7 @@ public class GameController implements InputEventListener {
             setupGameBoard();
             configureGuiController();
             bindGameProperties();
+            viewGuiController.updateNextShapesPreview(board.getViewData().getNextBricksData());
         } catch (Exception e) {
             handleInitializationError("Failed to initialize game", e);
         }
