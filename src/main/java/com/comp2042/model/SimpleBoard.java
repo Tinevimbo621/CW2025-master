@@ -176,7 +176,7 @@ public class SimpleBoard implements Board {
     @Override
     public boolean createNewBrick() {
 
-        //make next brick currenct brick
+        //make next brick current brick
         Brick newCurrent = nextBricks.remove(0);
 
         // Add a new generated brick to the queue

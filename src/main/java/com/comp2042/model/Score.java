@@ -62,7 +62,7 @@ public final class Score {
      * Level = (score / POINTS_PER_LEVEL) + 1
      */
 
-    private void updateLevel() {
+    public void updateLevel() {
         int newLevel = (score.get() / POINTS_PER_LEVEL) + 1;
         if (newLevel != level.get()) {
             level.setValue(newLevel);

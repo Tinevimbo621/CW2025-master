@@ -7,7 +7,10 @@ import com.comp2042.model.Board;
 import com.comp2042.model.DownData;
 import com.comp2042.model.SimpleBoard;
 import com.comp2042.model.ViewData;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.property.IntegerProperty;
+import javafx.util.Duration;
 
 /** Controller for managing game logic and coordinating between game board and UI
  * Handles game events , score management and game state transactions
@@ -23,7 +26,12 @@ public class GameController implements InputEventListener {
     private static final int LEVEL_TIME_LIMIT_SECONDS = 120;
     private static final int HARD_DROP_SCORE_MULTIPLIER = 2;
     private static final int COMBO_SCORE_BONUS = 25;
+    private static final int[] DROP_DELAYS_MS = {
+            1000, 900, 800, 700, 600, 500, 400, 300, 200, 100
+    };
 
+    //  Maximum level supported by our speed table
+    private static final int MAX_LEVEL = DROP_DELAYS_MS.length;
     /** Game mode identifier for Sprint mode */
     private static final String SPRINT_MODE = "Sprint";
 
@@ -32,7 +40,7 @@ public class GameController implements InputEventListener {
     private final LeaderboardManager leaderboardManager ;
     private final GuiController viewGuiController;
     private final GhostPieceManager ghostPieceManager;
-
+    private Timeline gameTimeline;
 
     //Game state variables
     private final String playerName;
@@ -93,7 +101,6 @@ public class GameController implements InputEventListener {
             configureGuiController();
             bindGameProperties();
             updateNextBrickPreview();
-            startLevel();
         } catch (Exception e) {
             handleInitializationError("Failed to initialize game", e);
         }
@@ -128,13 +135,14 @@ public class GameController implements InputEventListener {
      * <p>In Sprint mode, this resets the level timer and line counters.
      * In other modes, this method has no effect.</p>
      */
-    private void startLevel() {
+    public  void startLevel() {
         if (!isSprintMode()) return;
         this.linesClearedThisLevel = 0;
         this.levelWon = false;
 
         try {
             viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
+            viewGuiController.resetLinesCleared();
         } catch (Exception e) {
             handleGameError("Failed to reset level timer", e);
         }
@@ -172,7 +180,6 @@ public class GameController implements InputEventListener {
         }
         return name.trim();
     }
-
     /**
      * Handles downward movement events and associated game logic.
      *
@@ -238,10 +245,34 @@ public class GameController implements InputEventListener {
     private DownData handleBlockedMove() {
         board.mergeBrickToBackground();
         ClearRow clearRow = processRowClearing();
+        handleComboAndNotifications(clearRow);
         handleBrickPlacementComplete(clearRow);
         refreshGameDisplay();
 
         return new DownData(clearRow, board.getViewData());
+    }
+
+    /**
+     * Handles combo count update and displays combo notification.
+     * This logic is used after soft drops and gravity drops.
+     * @param clearRow The clear row data
+     */
+    private void handleComboAndNotifications(ClearRow clearRow) {
+        if (hasClearedLines(clearRow)) {
+            this.comboCount++;
+            int comboBonus = this.comboCount * COMBO_SCORE_BONUS; // Use your constant
+            board.getScore().add(comboBonus);
+
+            // Update lines cleared in the view (for Sprint mode)
+            viewGuiController.updateLinesCleared(clearRow.getLinesRemoved());
+
+            // Show the combo notification!
+            viewGuiController.showComboNotification(comboCount, comboBonus);
+
+        } else {
+            // Break the combo if lines were not cleared
+            this.comboCount = 0;
+        }
     }
 
     /**
@@ -648,6 +679,16 @@ public class GameController implements InputEventListener {
         board.getScore().levelProperty().set(board.getScore().getLevel() + 1);
         viewGuiController.showLevelUpNotification(board.getScore().getLevel());
         viewGuiController.resetLinesCleared();
+    }
+    /**
+     * Calculates the drop speed delay for a given level.
+     */
+    private int getDropDelayForLevel(int level) {
+        int index = Math.min(level, MAX_LEVEL) - 1;
+        // Ensure index is not negative
+        if (index < 0) return DROP_DELAYS_MS[0];
+
+        return DROP_DELAYS_MS[index];
     }
 
     @Override

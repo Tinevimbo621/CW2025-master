@@ -101,6 +101,7 @@ public class GuiController implements Initializable {
     private static final int REFLECTION_TOP_OFFSET = -12;
 
 
+
     //FXML injected UI
     @FXML private GridPane gamePanel;
     @FXML private Group groupNotification;
@@ -111,7 +112,6 @@ public class GuiController implements Initializable {
     @FXML private Button pauseButton ;
     @FXML private StackPane rootPane;
 
-    //Game State
     private Rectangle[][] displayMatrix;
     private InputEventListener eventListener;
     private Rectangle[][] rectangles;
@@ -177,6 +177,33 @@ public class GuiController implements Initializable {
             System.err.println("Warning: Failed to load custom font: " + FONT_PATH);
         }
     }
+    public GameController getGameController() {
+        return this.gameController;
+    }
+    public void initializeTimer(IntegerProperty timeLeftProperty, int seconds){
+        this.timeLeft = timeLeftProperty;
+
+
+        this.gameTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(1), event -> {
+                    int current = timeLeft.get();
+                    if (current > 0) {
+                        timeLeft.set(current - 1);
+                    } else {
+                        // Time runs out, trigger game over
+                        if (this.gameTimeline != null) {
+                            this.gameTimeline.stop();
+                        }
+                        if (this.gameController != null) {
+                            this.gameController.handleGameOver();
+                        }
+                    }
+                })
+        );
+
+        gameTimeline.setCycleCount(Timeline.INDEFINITE);
+    }
+
     //keyboard input handling
     /**
      * Connects keyboard input to the game panel.
@@ -1013,25 +1040,25 @@ public class GuiController implements Initializable {
         this.gameController = controller;
     }
 
-    public void setTimeLeftProperty(IntegerProperty timeLeft ,Timeline timer) {
-        this.timeLeft = timeLeft;
-
-    }
 
     public int getTimeLeft() {
         return timeLeft != null ? timeLeft.get() : Integer.MAX_VALUE;
     }
     /**
-     * Reset the timer to `seconds`. Useful when starting a new level.
-     * This method is optional — GameController calls it defensively.
+     * Reset the timer to 120 seconds. Useful when starting a new level.
+     * @param seconds number of seconds to be reset to
      */
     public void resetTimer(int seconds) {
-        if (gameTimeline != null && timeLeft != null) {
+        if (gameTimeline != null) {
             gameTimeline.stop();
-            timeLeft.set(seconds);
-            gameTimeline.play();
+            if (this.timeLeft != null) {
+                this.timeLeft.set(seconds);
+            }
+            gameTimeline.playFromStart();
         }
     }
+
+
     public void resetLinesCleared() {
         totalClearedRows = 0;
         if (linesLabel != null) {

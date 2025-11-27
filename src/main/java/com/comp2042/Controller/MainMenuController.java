@@ -29,6 +29,8 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.net.URL;
 
+
+
 /**
  * Controller for the main menu of the game.
  * Handles game mode selection and navigation to different game screens.
@@ -216,9 +218,6 @@ public class MainMenuController {
             setupTimerFeature(guiController, root);
             guiController.getLevelLabel().setVisible(false);
         }
-        else {
-            guiController.getLevelLabel().setVisible(true);
-        }
         if (mode.hasLineCounter()) {
             setupLineCounterFeature(guiController, root);
         }
@@ -242,16 +241,11 @@ public class MainMenuController {
         StackPane.setAlignment(timerLabel, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(timerLabel, LABEL_MARGIN);
         root.getChildren().add(timerLabel);
-        Timeline timer = new Timeline(
-                new KeyFrame(Duration.seconds(1), e -> {
-                    int t = timeLeft.get();
-                    if (t > 0) timeLeft.set(t - 1);
-                    else guiController.gameOver();
-                })
-        );
 
-        timer.setCycleCount(Timeline.INDEFINITE);
-        timer.play();
+        guiController.initializeTimer(timeLeft, ULTRA_TIME_LIMIT_SECONDS);
+        guiController.getGameController().startLevel();
+
+        guiController.getLevelLabel().setVisible(false);
     }
     // LINE COUNTER FEATURE
     /**
