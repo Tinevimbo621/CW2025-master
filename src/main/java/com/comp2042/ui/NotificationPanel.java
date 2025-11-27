@@ -13,9 +13,19 @@ import javafx.scene.effect.Glow;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-
+/**
+ * A panel used to display temporary notifications (e.g., bonus points).
+ * <p>
+ * Shows a glowing text label and animates it with fade and translate transitions
+ * before removing itself from the parent node list.
+ * </p>
+ */
 public class NotificationPanel extends BorderPane {
-
+    /**
+     * Constructs a {@code NotificationPanel} with the given text.
+     *
+     * @param text the message to display
+     */
     public NotificationPanel(String text) {
         setMinHeight(200);
         setMinWidth(220);
@@ -27,7 +37,12 @@ public class NotificationPanel extends BorderPane {
         setCenter(score);
 
     }
-
+    /**
+     * Plays the notification animation and removes this panel from the given list
+     * once the animation finishes.
+     *
+     * @param list the parent node list containing this panel
+     */
     public void showScore(ObservableList<Node> list) {
         FadeTransition ft = new FadeTransition(Duration.millis(2000), this);
         TranslateTransition tt = new TranslateTransition(Duration.millis(2500), this);

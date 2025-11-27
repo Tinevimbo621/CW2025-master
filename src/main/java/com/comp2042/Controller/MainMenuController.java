@@ -2,19 +2,16 @@ package com.comp2042.Controller;
 
 
 import com.comp2042.audio.SoundManager;
-import com.comp2042.ui.NotificationPanel;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -39,41 +36,16 @@ import java.net.URL;
 
 public class MainMenuController {
     //FXML UI Components
-    @FXML
-    private ImageView backgroundImage;
-    @FXML
-    private Button marathonButton;
-    @FXML
-    private Button sprintButton;
-    @FXML
-    private Button ultraButton;
-    @FXML
-    private Button exitButton;
-    @FXML
-    private Button leaderBoardButton;
+    @FXML private ImageView backgroundImage;
+    @FXML private Button marathonButton;
+    @FXML private Button sprintButton;
+    @FXML private Button ultraButton;
+    @FXML private Button exitButton;
     @FXML private TextField playerNameField;
-    @FXML
-    private Group groupNotification;
-    @FXML
-
-    private Button soundButton;
+    @FXML private Button soundButton;
 
     private boolean soundEnabled = true;
-
-
-    @FXML
-    private void toggleSound() {
-        soundEnabled = !soundEnabled;
-        soundButton.setText(soundEnabled ? "Sound: ON" : "Sound: OFF");
-
-        if (soundEnabled) {
-            SoundManager.playBackground();
-        } else {
-            SoundManager.pauseBackground();
-        }
-    }
-
-    //Constants
+     //Constants
 
     private static final String DEFAULT_PLAYER_NAME = "Player";
     private static final String GAME_LAYOUT_PATH = "ui/gameLayout.fxml";
@@ -81,19 +53,14 @@ public class MainMenuController {
     private static final String BACKGROUND_IMAGE_PATH = "/ui/Main_menu.jpg";
     private static final double SCENE_WIDTH = 800.0;
     private static final double SCENE_HEIGHT = 800.0;
-
-
-
-
+    private static final int ULTRA_TIME_LIMIT_SECONDS = 120;
 
     // UI Styling Constants
     private static final String TIMER_LABEL_STYLE = "-fx-font-size: 40px; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\";";
     private static final String LINES_LABEL_STYLE = "-fx-font-size: 25px; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\";";
-    private static final Insets LABEL_MARGIN = new Insets(10, 10, 10, 10);
+    private static final Insets LABEL_MARGIN = new Insets(10);
 
-    // Game Mode Configuration
-    private static final int ULTRA_TIME_LIMIT_SECONDS = 50;
-
+    //GAME MODES
     /**
      * Enum representing different game modes with their configurations
      */
@@ -104,7 +71,6 @@ public class MainMenuController {
 
         private final String name;
         private final String instructions;
-
         private final boolean hasTimer;
         private final boolean hasLineCounter;
 
@@ -120,6 +86,7 @@ public class MainMenuController {
         public boolean hasTimer() { return hasTimer; }
         public boolean hasLineCounter() { return hasLineCounter; }
     }
+    //INITIALIZATION
     /**
      * Initializes the controller and sets up UI elements and event handlers.
      */
@@ -135,6 +102,19 @@ public class MainMenuController {
             logError("Failed to initialize MainMenuController", e);
         }
     }
+    //SOUND CONTROL
+    @FXML
+    private void toggleSound() {
+        soundEnabled = !soundEnabled;
+        soundButton.setText(soundEnabled ? "Sound: ON" : "Sound: OFF");
+
+        if (soundEnabled) {
+            SoundManager.playBackground();
+        } else {
+            SoundManager.pauseBackground();
+        }
+    }
+   //UI SETUP
     /**
      * Sets up the background image for the main menu.
      */
@@ -150,8 +130,6 @@ public class MainMenuController {
             logError("Failed to load background image", e);
         }
     }
-        // Set background image
-
     /**
      * Sets up event handlers for all buttons in the main menu.
      */
@@ -162,6 +140,7 @@ public class MainMenuController {
         sprintButton.setOnAction(e -> startGame(GameMode.SPRINT));
         exitButton.setOnAction(e -> exitGame());
     }
+    //START GAME
     /**
      * Starts a new game with the specified mode.
      *
@@ -170,35 +149,33 @@ public class MainMenuController {
     private void startGame(GameMode mode) {
         try {
             showModeInstructions(mode);
-            String playerName = getValidatedPlayerName();
 
-
-            // Load game scene
             FXMLLoader loader = loadGameLayout();
-            Scene gameScene = createGameScene(loader);
+            Scene gameScene = new Scene(loader.load(), SCENE_WIDTH, SCENE_HEIGHT);
 
-            // Initialize game controller
             GuiController guiController = loader.getController();
-            initializeGameController(guiController, playerName, mode.getName());
+            String playerName = getValidatedPlayerName();
+            new GameController(guiController, playerName, mode.getName());
 
-            // Apply mode-specific features
             applyModeSpecificFeatures(guiController, gameScene, mode);
-
-            // Switch to game scene
             switchToGameScene(gameScene, mode);
 
         } catch (Exception e) {
             logError("Failed to start game in " + mode.getName() + " mode", e);
         }
     }
+    /**
+     * Displays an informational alert with instructions for the specified game mode.
+     *
+     * @param mode the game mode whose name and instructions are shown in the alert
+     */
+
     private void showModeInstructions(GameMode mode) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(mode.getName() + " Instructions");
         alert.setHeaderText(mode.getName() + " Mode");
         alert.setContentText(mode.getInstructions());
-
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-
         alert.showAndWait();
     }
     /**
@@ -224,29 +201,7 @@ public class MainMenuController {
         }
         return new FXMLLoader(gameLayout);
     }
-
-    /**
-     * Creates the game scene from the loaded FXML.
-     *
-     * @param loader The FXMLLoader with the game layout
-     * @return Created Scene object
-     * @throws IOException if the scene cannot be created
-     */
-    private Scene createGameScene(FXMLLoader loader) throws IOException {
-        return new Scene(loader.load(), SCENE_WIDTH, SCENE_HEIGHT);
-    }
-
-    /**
-     * Initializes the GameController with the provided parameters.
-     *
-     * @param guiController The GUI controller
-     * @param playerName The player name
-     * @param modeName The name of the game mode
-     */
-    private void initializeGameController(GuiController guiController, String playerName, String modeName) {
-        new GameController(guiController, playerName, modeName);
-    }
-
+    //GAME MODE FEATURES
     /**
      * Applies mode-specific features to the game scene.
      *
@@ -256,24 +211,20 @@ public class MainMenuController {
      */
     private void applyModeSpecificFeatures(GuiController guiController, Scene gameScene, GameMode mode) {
         StackPane root = (StackPane) gameScene.getRoot();
+
         if (mode.hasTimer()) {
             setupTimerFeature(guiController, root);
-
-            // TIMER MODE → hide and unbind level label completely
             guiController.getLevelLabel().setVisible(false);
         }
         else {
-            // NORMAL LEVEL MODE → show AND bind
             guiController.getLevelLabel().setVisible(true);
-
         }
-
         if (mode.hasLineCounter()) {
             setupLineCounterFeature(guiController, root);
         }
 
     }
-
+    //Time feature
     /**
      * Sets up the timer feature for timed game modes.
      *
@@ -281,57 +232,28 @@ public class MainMenuController {
      * @param root The root StackPane of the scene
      */
     private void setupTimerFeature(GuiController guiController, StackPane root) {
-        final IntegerProperty timeLeft = new SimpleIntegerProperty(ULTRA_TIME_LIMIT_SECONDS);
-
-        final Label timerLabel = createTimerLabel(timeLeft);
+        IntegerProperty timeLeft = new SimpleIntegerProperty(ULTRA_TIME_LIMIT_SECONDS);
 
 
-
-
-        root.getChildren().add(timerLabel);
-        StackPane.setAlignment(timerLabel, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(timerLabel, LABEL_MARGIN);
-
-        Timeline timer = createGameTimer(timeLeft, guiController);
-        guiController.setTimeLeftProperty(timeLeft, timer);
-        timer.play();
-    }
-
-    /**
-     * Creates a timer label bound to the time left property.
-     *
-     * @param timeLeft The IntegerProperty for time remaining
-     * @return Configured Label for displaying timer
-     */
-    private Label createTimerLabel(IntegerProperty timeLeft) {
-        final Label timerLabel = new Label();
+        Label timerLabel = new Label();
         timerLabel.textProperty().bind(Bindings.concat("Time: ", timeLeft.asString()));
         timerLabel.setStyle(TIMER_LABEL_STYLE);
-        return timerLabel;
-    }
 
-    /**
-     * Creates a game timer timeline that triggers game over when time expires.
-     *
-     * @param timeLeft The time left property
-     * @param guiController The GUI controller
-     * @return Configured Timeline for the game timer
-     */
-    private Timeline createGameTimer(IntegerProperty timeLeft, GuiController guiController) {
-
-        final Timeline timer = new Timeline(
+        StackPane.setAlignment(timerLabel, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(timerLabel, LABEL_MARGIN);
+        root.getChildren().add(timerLabel);
+        Timeline timer = new Timeline(
                 new KeyFrame(Duration.seconds(1), e -> {
-                    int currentTime = timeLeft.get();
-                    if (currentTime > 0) {
-                        timeLeft.set(currentTime - 1);
-                    } else {
-                        guiController.gameOver();
-                    }
+                    int t = timeLeft.get();
+                    if (t > 0) timeLeft.set(t - 1);
+                    else guiController.gameOver();
                 })
         );
+
         timer.setCycleCount(Timeline.INDEFINITE);
-        return timer;
+        timer.play();
     }
+    // LINE COUNTER FEATURE
     /**
      * Sets up the line counter feature for sprint mode.
      *
@@ -339,24 +261,16 @@ public class MainMenuController {
      * @param root The root StackPane of the scene
      */
     private void setupLineCounterFeature(GuiController guiController, StackPane root) {
-        Label linesLabel = createLinesLabel();
+        Label linesLabel = new Label("Lines Cleared: 0");
+        linesLabel.setStyle(LINES_LABEL_STYLE);
 
-        root.getChildren().add(linesLabel);
         StackPane.setAlignment(linesLabel, Pos.BOTTOM_LEFT);
         StackPane.setMargin(linesLabel, LABEL_MARGIN);
+        root.getChildren().add(linesLabel);
 
         guiController.setLinesLabel(linesLabel);
     }
-    /**
-     * Creates a label for displaying cleared lines count.
-     *
-     * @return Configured Label for lines counter
-     */
-    private Label createLinesLabel() {
-        Label linesLabel = new Label("Lines Cleared: 0");
-        linesLabel.setStyle(LINES_LABEL_STYLE);
-        return linesLabel;
-    }
+    //SCENE SWITCHING
     /**
      * Switches the current stage to the game scene.
      *
@@ -377,6 +291,7 @@ public class MainMenuController {
     private Stage getCurrentStage() {
         return (Stage) marathonButton.getScene().getWindow();
     }
+    //OTHER BUTTONS
     /**
      * Exits the game application.
      */
@@ -396,18 +311,17 @@ public class MainMenuController {
      */
     public void openLeaderboard(ActionEvent event) throws IOException {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/leaderboard.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(LEADERBOARD_PATH));
             Parent root = loader.load();
-            Scene scene = new Scene(root);
-
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
+            stage.setScene(new Scene(root));
             stage.show();
         } catch (Exception e) {
             logError("Failed to open leaderboard", e);
             throw e;
         }
     }
+    //ERROR HANDLING
     /**
      * Logs error messages with optional exception details.
      *

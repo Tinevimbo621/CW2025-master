@@ -3,7 +3,6 @@ package com.comp2042.Controller;
 import com.comp2042.LeaderBoard.ClearRow;
 import com.comp2042.LeaderBoard.LeaderboardManager;
 import com.comp2042.LeaderBoard.ScoreEntry;
-import com.comp2042.logic.bricks.Brick;
 import com.comp2042.model.Board;
 import com.comp2042.model.DownData;
 import com.comp2042.model.SimpleBoard;
@@ -21,25 +20,25 @@ public class GameController implements InputEventListener {
     private static final int BOARD_HEIGHT = 30;
     private static final int USER_DROP_SCORE_BONUS = 1;
     private static final String DEFAULT_PLAYER_NAME = "Unknown Player";
-    // Level/timing constants
     private static final int LEVEL_TIME_LIMIT_SECONDS = 120;
-    //increasing game board from 25*10 to 39 * 23 so the block can reach all boarders
+    private static final int HARD_DROP_SCORE_MULTIPLIER = 2;
+    private static final int COMBO_SCORE_BONUS = 25;
 
+    /** Game mode identifier for Sprint mode */
+    private static final String SPRINT_MODE = "Sprint";
+
+    //Game Components
     private final Board board ;
     private final LeaderboardManager leaderboardManager ;
     private final GuiController viewGuiController;
     private final GhostPieceManager ghostPieceManager;
 
 
-    //Game state
+    //Game state variables
     private final String playerName;
     private final String gameMode;
     boolean scoreSaved = false;
     private int comboCount = 0;
-
-
-
-    // New level-related state
     private int currentLevel = 1;
     private int linesClearedThisLevel = 0;
     private boolean levelWon = false;
@@ -49,6 +48,7 @@ public class GameController implements InputEventListener {
      * @param c The GUI controller for visual updates
      * @param playerName The name of the player
      * @param mode The game mode being played
+     * @throws IllegalArgumentException if guiController is null
      */
     public GameController(GuiController c, String playerName, String mode) {
         this.viewGuiController = c;
@@ -58,7 +58,7 @@ public class GameController implements InputEventListener {
         this.leaderboardManager = new LeaderboardManager();
         this.ghostPieceManager = new GhostPieceManager(board);
 
-        // Let the GuiController know about this controller so it can forward events
+
         this.viewGuiController.setGameController(this);
         viewGuiController.setOnLevelComplete(() ->{
             if (isSprintMode()) {
@@ -84,7 +84,6 @@ public class GameController implements InputEventListener {
     }
 
 
-
     /**
      * Initializes the game state and UI.
      */
@@ -93,12 +92,12 @@ public class GameController implements InputEventListener {
             setupGameBoard();
             configureGuiController();
             bindGameProperties();
-            viewGuiController.updateNextShapesPreview(board.getViewData().getNextBricksData());
+            updateNextBrickPreview();
+            startLevel();
         } catch (Exception e) {
             handleInitializationError("Failed to initialize game", e);
         }
     }
-
 
     /**
      * Sets up the initial game board state.
@@ -123,33 +122,43 @@ public class GameController implements InputEventListener {
         viewGuiController.bindLevel(board.getScore().levelProperty());
     }
 
-    /* ---------- level system ---------- */
-
+    /**
+     * Starts or restarts the current level with appropriate setup.
+     *
+     * <p>In Sprint mode, this resets the level timer and line counters.
+     * In other modes, this method has no effect.</p>
+     */
     private void startLevel() {
         if (!isSprintMode()) return;
         this.linesClearedThisLevel = 0;
         this.levelWon = false;
 
-        // Optionally reset timer UI to LEVEL_TIME_LIMIT_SECONDS if desired
-        // Only do this if GuiController provided ability to reset. We call it defensively:
         try {
             viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            handleGameError("Failed to reset level timer", e);
         }
     }
 
+    /**
+     * Gets the number of lines required to complete the current level.
+     *@return number of lines required for level completion
+     */
     private int getRequiredLines() {
         return isSprintMode() ? currentLevel : Integer.MAX_VALUE;
     }
-
+    /**
+     * Advances to the next level in Sprint mode.
+     *
+     * <p>advanceLevel() shows a level up notification, increments the level counter,
+     * and starts the new level with fresh timers and counters.</p>
+     */
     private void advanceLevel() {
         if (!isSprintMode()) return;
         viewGuiController.showLevelUpNotification(currentLevel);
         currentLevel++;
         startLevel();
 
-        // Hook for difficulty increase (e.g., speed up board gravity). You can add:
-        // board.getScore().setDropInterval(...); or similar based on your codebase.
     }
     /**
      * Sanitizes and validates the player name.
@@ -167,8 +176,12 @@ public class GameController implements InputEventListener {
     /**
      * Handles downward movement events and associated game logic.
      *
-     * @param event The move event
-     * @return DownData containing updated game state
+     * <p>DownData onDownEvent(MoveEvent event) processes both automatic gravity drops and user-initiated
+     * soft drops. When movement is blocked, it handles brick placement,
+     * row clearing, and game over conditions.</p>
+     *
+     * @param event the movement event containing source information
+     * @return DownData containing updated game state and clear row information
      */
 
     @Override
@@ -184,16 +197,16 @@ public class GameController implements InputEventListener {
             return createEmergencyDownData();
         }
     }
-/**
-        * Checks if the current brick can move down.
-            * @return true if movement is possible
+    /**
+     * Checks if the current brick can move down.
+     * @return true if movement is possible
      */
     private boolean canMoveDown() {
         return board.moveBrickDown();
     }
 
     /**
-     * Handles successful downward movement.
+     * Handles successful downward movement  including score bonuses..
      *
      * @param event The move event
      * @return Updated DownData
@@ -204,9 +217,9 @@ public class GameController implements InputEventListener {
     }
 
     /**
-     * Handles score addition for user-initiated drops.
+     * Handles score addition for user-initiated soft drops.
      *
-     * @param event The move event
+     * @param event the movement event containing source information
      */
     private void handleUserDropScore(MoveEvent event) {
         if (event.getEventSource() == EventSource.USER) {
@@ -215,9 +228,12 @@ public class GameController implements InputEventListener {
     }
 
     /**
-     * Handles blocked downward movement (brick collision).
+     * Handles blocked downward movement when the brick cannot move further.
      *
-     * @return Updated DownData with clear row information
+     * <p>This method processes brick placement, row clearing, score updates,
+     * new brick spawning, and game over conditions.</p>
+     *
+     * @return DownData with clear row information and updated view data
      */
     private DownData handleBlockedMove() {
         board.mergeBrickToBackground();
@@ -231,12 +247,13 @@ public class GameController implements InputEventListener {
     /**
      * Processes row clearing and score updates.
      *
-     * @return ClearRow information
+     * @return ClearRow information containing details about cleared rows
      */
     private ClearRow processRowClearing() {
         ClearRow clearRow = board.clearRows();
         if (hasClearedLines(clearRow)) {
             board.getScore().add(clearRow.getScoreBonus());
+
         }
         return clearRow;
     }
@@ -359,23 +376,14 @@ public class GameController implements InputEventListener {
     public ViewData onHardDropEvent(MoveEvent event) {
         try {
             ViewData brick = board.getViewData();
-
-            // 1. Calculate ghost drop distance
             int dropDistance = getGhostDrop(brick);
 
-            // 2. Apply instant downward movement
             for (int i = 0; i < dropDistance; i++) {
                 board.moveBrickDown();
             }
-
-            // 3. Add hard drop score bonus
-            // (common formula: distance * 2)
             board.getScore().add(dropDistance * 2);
-
-            // 4. Merge brick to background
             board.mergeBrickToBackground();
 
-            // 5. Clear lines
             ClearRow clearRow = board.clearRows();
             if (clearRow != null && clearRow.getLinesRemoved() > 0) {
                 board.getScore().add(clearRow.getScoreBonus());
@@ -387,9 +395,6 @@ public class GameController implements InputEventListener {
             }else {
                 comboCount = 0;
             }
-
-
-            // 6. Create next brick or end game
             if (board.createNewBrick()) {
                 handleGameOver();
             } else {
@@ -397,10 +402,7 @@ public class GameController implements InputEventListener {
                         board.getViewData().getNextBricksData()
                 );
             }
-
-            // 7. Refresh board
             viewGuiController.refreshGameBackground(board.getBoardMatrix());
-
             return board.getViewData();
 
         }catch (Exception e) {
@@ -472,24 +474,35 @@ public class GameController implements InputEventListener {
      * @param linesRemoved Number of lines cleared in that event
      */
     public void onLinesCleared(int linesRemoved) {
-        if (levelWon) return; // ignore if we've already won this level
+        if (levelWon) return;
 
-        // Increment per-level counter
+
         this.linesClearedThisLevel += linesRemoved;
 
-        // Check timer via GuiController if available
         int timeLeft = Integer.MAX_VALUE;
         try {
-            timeLeft = viewGuiController.getTimeLeft(); // GuiController must provide this method
+            timeLeft = viewGuiController.getTimeLeft();
         } catch (Exception ignored) { }
 
-
-        // Check win condition: required lines reached and time still remaining (>0)
         if (linesClearedThisLevel >= getRequiredLines() && timeLeft > 0) {
             levelWon = true;
             advanceLevel();
         }
     }
+    /**
+     * Logs an error with a given context prefix.
+     *
+     * @param context   the source or category of the error (for example "LEADERBOARD", "INITIALIZATION")
+     * @param message   the error message
+     * @param exception the exception that occurred, may be null
+     */
+    private void handleError(String context, String message, Exception exception) {
+        System.err.println(context + " ERROR: " + message);
+        if (exception != null) {
+            exception.printStackTrace();
+        }
+    }
+
 
     /**
      * Handles game-related errors with logging and recovery.
@@ -498,11 +511,8 @@ public class GameController implements InputEventListener {
      * @param exception The exception that occurred
      */
     private void handleGameError(String message, Exception exception) {
-        System.err.println("GAME ERROR: " + message);
-        if (exception != null) {
-            exception.printStackTrace();
-        }
-        // Could add more sophisticated error handling here
+        handleError("GAME ERROR:", message, exception);
+
     }
 
     /**
@@ -512,11 +522,8 @@ public class GameController implements InputEventListener {
      * @param exception The exception that occurred
      */
     private void handleLeaderboardError(String message, Exception exception) {
-        System.err.println("LEADERBOARD ERROR: " + message);
-        if (exception != null) {
-            exception.printStackTrace();
-        }
-        // Could add user notification here
+        handleError("LEADERBOARD", message, exception);
+
     }
     /**
      * Handles initialization errors.
@@ -525,11 +532,8 @@ public class GameController implements InputEventListener {
      * @param exception The exception that occurred
      */
     private void handleInitializationError(String message, Exception exception) {
-        System.err.println("INITIALIZATION ERROR: " + message);
-        if (exception != null) {
-            exception.printStackTrace();
-        }
-        // Could add more robust error recovery here
+        handleError("INITIALIZATION", message, exception);
+
     }
     /**
      * Inner class for managing ghost piece calculations and positioning.
@@ -640,14 +644,9 @@ public class GameController implements InputEventListener {
         }
     }
     private void handleLevelComplete() {
-        // 1. Restart the timer
         viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
-
-        // 2. Increase level to 2
         board.getScore().levelProperty().set(board.getScore().getLevel() + 1);
-
         viewGuiController.showLevelUpNotification(board.getScore().getLevel());
-        // 4. Reset line requirement
         viewGuiController.resetLinesCleared();
     }
 
@@ -655,13 +654,8 @@ public class GameController implements InputEventListener {
     public ViewData onHoldEvent(MoveEvent event) {
         try {
             board.holdBrick();
-
-            // Update GUI held preview and return updated ViewData
             ViewData view = board.getViewData();
             viewGuiController.updateHeldBrick(view.getHeldBrickData());
-            // If createNewBrick caused a game over, createNewBrick() returns true and GameController
-            // caller flow should detect that earlier (e.g., handleBlockedMove). If needed, also
-            // check for immediate collision after swap in SimpleBoard (not implemented here).
             return view;
         } catch (Exception e) {
             handleGameError("Error during brick hold", e);

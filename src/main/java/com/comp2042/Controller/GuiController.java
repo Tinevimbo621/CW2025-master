@@ -1,7 +1,6 @@
 package com.comp2042.Controller;
 
 import com.comp2042.LeaderBoard.ClearRow;
-import com.comp2042.audio.SoundManager;
 import com.comp2042.model.DownData;
 import com.comp2042.model.ViewData;
 import com.comp2042.ui.GameOverPanel;
@@ -9,7 +8,6 @@ import com.comp2042.ui.NotificationPanel;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -30,11 +28,8 @@ import javafx.scene.effect.Reflection;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -46,8 +41,17 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 /**
- * Controller for the main game ui
- * handles game rendering , user input and UI updates
+ * GuiController handles all rendering, UI updates, keyboard input,
+ * game timeline control, and communication with the GameController.
+ *
+ * Responsibilities include:
+ *  - Rendering active/ghost bricks
+ *  - Rendering next/held pieces
+ *  - Handling keyboard controls
+ *  - Animations (notifications, level-up)
+ *  - Pause, resume, main menu navigation
+ *  - Displaying score + level
+ *  - Managing game over UI
  */
 public class GuiController implements Initializable {
 
@@ -62,14 +66,11 @@ public class GuiController implements Initializable {
     private static final double SCENE_WIDTH = 900.0;
     private static final double SCENE_HEIGHT = 800.0;
 
-    // File paths
+    // Font and FXML paths
     private static final String FONT_PATH = "digital.ttf";
     private static final String MAIN_MENU_FXML = "ui/mainMenu.fxml";
-    public GridPane holdPanel;
-    private GameController gameController;
-    private IntegerProperty timeLeft;
 
-    GameOverPanel gameOverPanel = new GameOverPanel(
+  GameOverPanel gameOverPanel = new GameOverPanel(
             () -> {
                 try {
                     mainmenuDirect();
@@ -100,43 +101,31 @@ public class GuiController implements Initializable {
     private static final int REFLECTION_TOP_OFFSET = -12;
 
 
-    //UI Components
-    @FXML
-    private GridPane gamePanel;
-    @FXML
-    private Group groupNotification;
-    @FXML
-    private GridPane brickPanel;
-
-    @FXML
-    // for next brick in the side panel
-    private VBox nextBricksPanel;
-    // to show score on the side panel
-    @FXML
-    private Label scoreLabel ;
-    //to show the image background
-    @FXML
-    private Label levelLabel;
-    //pause button
-    @FXML
-    private Button pauseButton ;
-    @FXML
-    private StackPane rootPane;
-
-
+    //FXML injected UI
+    @FXML private GridPane gamePanel;
+    @FXML private Group groupNotification;
+    @FXML private GridPane brickPanel;
+    @FXML private VBox nextBricksPanel;
+    @FXML private Label scoreLabel ;
+    @FXML private Label levelLabel;
+    @FXML private Button pauseButton ;
+    @FXML private StackPane rootPane;
 
     //Game State
     private Rectangle[][] displayMatrix;
     private InputEventListener eventListener;
     private Rectangle[][] rectangles;
-    // matrix for the ghost
+    public GridPane holdPanel;
+    private GameController gameController;
+    private IntegerProperty timeLeft;
     private Rectangle[][] ghostMatrix;
-
     private Timeline gameTimeline;
     private Label linesLabel;
-    private int totalClearedRows = 0 ;
 
-    //Game State properties
+    private int totalClearedRows = 0 ;
+    private int requiredLinesToClear = 10;
+    private Runnable levelCompleteHandler;
+
     private final BooleanProperty isPaused = new SimpleBooleanProperty();
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
 
@@ -152,10 +141,13 @@ public class GuiController implements Initializable {
             Color.BURLYWOOD,    // 7
             Color.WHITE         // default
     };
-
-   /**
-     * Initializes the controller and sets up UI components and event handlers.
+   //INITIALIZATION
+    /**
+     * Called automatically by JavaFX after FXML loads.
+     * Sets up the game panel, keyboard controls, visual effects,
+     * and initializes UI components.
      */
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
@@ -168,16 +160,15 @@ public class GuiController implements Initializable {
         }
     }
     /**
-     * Initializes the game panel with focus settings.
+     * Loads custom font, sets focus, and prepares game panel.
      */
     private void initializeGamePanel() {
         loadCustomFont();
         gamePanel.setFocusTraversable(true);
         gamePanel.requestFocus();
     }
-
     /**
-     * Loads the custom font for the game UI.
+     * Loads the custom font used in score and level labels.
      */
     private void loadCustomFont() {
         try {
@@ -186,17 +177,20 @@ public class GuiController implements Initializable {
             System.err.println("Warning: Failed to load custom font: " + FONT_PATH);
         }
     }
-
+    //keyboard input handling
     /**
-     * Sets up keyboard event handling for game controls.
+     * Connects keyboard input to the game panel.
+     * Only gamePanel receives key events to avoid focus problems.
      */
     private void setupKeyboardInput() {
         gamePanel.setOnKeyPressed(createKeyEventHandler());
     }
-
     /**
-     * Creates the key event handler for game input.
-     *
+     * Creates a unified KeyEvent handler controlling all game input.
+     * Movement keys: arrows / WASD
+     * Q → Hard drop
+     * C → Hold piece
+     * N → New game
      * @return EventHandler for keyboard input
      */
     private EventHandler<KeyEvent> createKeyEventHandler() {
@@ -207,7 +201,6 @@ public class GuiController implements Initializable {
             handleSystemKeys(keyEvent);
         };
     }
-
     /**
      * Handles gameplay-related key inputs.
      *
@@ -240,23 +233,19 @@ public class GuiController implements Initializable {
      * @param keyEvent The keyboard event
      */
     private void handleMovementKey(KeyCode code, KeyEvent keyEvent) {
-        if (code == KeyCode.LEFT || code == KeyCode.A) {
-            handleLeftMovement();
-        } else if (code == KeyCode.RIGHT || code == KeyCode.D) {
-            handleRightMovement();
-        } else if (code == KeyCode.UP || code == KeyCode.W) {
-            handleRotation();
-        } else if (code == KeyCode.DOWN || code == KeyCode.S) {
-            handleDownMovement();
-        } else if (code == KeyCode.Q) {
-            sendHardDrop();
-        }else if(code == KeyCode.C){
-                holdCurrentBrick();
-            }
-
-
+        switch (code) {
+            case LEFT, A -> handleLeftMovement();
+            case RIGHT, D -> handleRightMovement();
+            case UP, W -> handleRotation();
+            case DOWN, S -> handleDownMovement();
+            case Q -> sendHardDrop();
+            case C -> holdCurrentBrick();
+        }
         keyEvent.consume();
     }
+    /**
+     * Sends hard drop event to the GameController and refreshes the view.
+     */
     private void sendHardDrop() {
         if (eventListener != null) {
             ViewData data = eventListener.onHardDropEvent(
@@ -265,22 +254,24 @@ public class GuiController implements Initializable {
             refreshBrick(data);
         }
     }
-    // call this in key handler (you already call holdCurrentBrick())
+    /**
+     * Holds/swaps the current piece and refreshes UI previews.
+     */
     private void holdCurrentBrick() {
         if (eventListener == null) return;
         ViewData view = eventListener.onHoldEvent(
-                // note: your InputEventListener interface may not accept arguments for onHoldEvent;
-                // if it doesn't, make sure its signature matches (no params). Here we assume no params.
-                new MoveEvent(EventType.HOLD, EventSource.USER) // optional if your interface requires event
+                new MoveEvent(EventType.HOLD, EventSource.USER)
         );
-        // refresh brick/ghost/next/held displays
         refreshBrick(view);
         updateNextShapesPreview(view.getNextBricksData());
         updateHeldBrick(view.getHeldBrickData());
     }
-
+    /**
+     * Renders the held brick in the hold panel.
+     *
+     * @param heldMatrix 2D array representing the held brick; non-zero values are drawn as colored blocks.
+     */
     public void updateHeldBrick(int[][] heldMatrix) {
-        // clear hold panel
         if (holdPanel == null) return;
         holdPanel.getChildren().clear();
 
@@ -301,30 +292,24 @@ public class GuiController implements Initializable {
         }
         holdPanel.getChildren().add(panel);
     }
-
-
-
     /**
      * Handles left movement.
      */
     private void handleLeftMovement() {
         refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
     }
-
     /**
      * Handles right movement.
      */
     private void handleRightMovement() {
         refreshBrick(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
     }
-
     /**
      * Handles rotation.
      */
     private void handleRotation() {
         refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
     }
-
     /**
      * Handles down movement.
      */
@@ -342,15 +327,15 @@ public class GuiController implements Initializable {
         }
     }
 
+    // BRICK + GHOST RENDERING
+
     /**
      * Initializes the game over panel.
      */
-
     private void initializeGameOverPanel() {
         rootPane.getChildren().add(gameOverPanel);
         gameOverPanel.toFront();
         gameOverPanel.setVisible(false);
-       // Allow clicks to pass through when not visible
         gameOverPanel.setMouseTransparent(true);
     }
     /**
@@ -372,7 +357,6 @@ public class GuiController implements Initializable {
         reflection.setTopOffset(REFLECTION_TOP_OFFSET);
         return reflection;
     }
-
     /**
      * Initializes the game view with the board matrix and initial brick.
      *
@@ -558,7 +542,10 @@ public class GuiController implements Initializable {
     }
     /**
      * Refreshes the brick display with new position data.
-     *
+     * Updates:
+     * brick position
+     * brick colors
+     *  ghost piece
      * @param brick The updated brick data
      */
     private void refreshBrick(ViewData brick) {
@@ -683,17 +670,17 @@ public class GuiController implements Initializable {
         if (gameController != null) {
             gameController.onLinesCleared(linesRemoved);
         }
-        if (totalClearedRows >= requiredLinesToClear) {
-            levelCompleteHandler.run();   // Notify GameController
+        if (totalClearedRows >= requiredLinesToClear  && levelCompleteHandler != null) {
+            levelCompleteHandler.run();
         }
     }
-    private int requiredLinesToClear = 10;
-    private Runnable levelCompleteHandler;
 
+    /**
+     * Called by GameController to subscribe to level-complete events.
+     */
     public void setOnLevelComplete(Runnable handler) {
         this.levelCompleteHandler = handler;
     }
-
 
     /**
      * Shows a score notification for cleared lines.
@@ -707,7 +694,7 @@ public class GuiController implements Initializable {
         notificationPanel.showScore(children);
     }
     /**
-     * Shows a score notification for cleared lines.
+     * Shows a level alert for completed levels.
      *
      * @param newLevel The completed level
      */
@@ -722,8 +709,6 @@ public class GuiController implements Initializable {
         });
 
     }
-
-
     /**
      * Sets the event listener for game events.
      *
@@ -759,7 +744,7 @@ public class GuiController implements Initializable {
         gameTimeline.stop();
         gameOverPanel.setVisible(true);
         gameOverPanel.toFront();
-
+        gameOverPanel.setMouseTransparent(false);
         isGameOver.set(true);
     }
     /**
@@ -777,6 +762,7 @@ public class GuiController implements Initializable {
     private void resetGameState() {
         gameTimeline.stop();
         gameOverPanel.setVisible(false);
+        gameOverPanel.setMouseTransparent(true);
         isPaused.set(false);
         isGameOver.set(false);
     }
@@ -1052,7 +1038,11 @@ public class GuiController implements Initializable {
             linesLabel.setText("Lines Cleared: 0");
         }
     }
-
+    /**
+     * Shows combo popup (“Combo xN! (+score)”).
+     * @param combo number of lines cleared one after the other
+     * @param bonus points to be added to score
+     */
     public void showComboNotification(int combo, int bonus) {
         String message = "COMBO x" + combo + "  (+" + bonus + ")";
         NotificationPanel panel = new NotificationPanel(message);
@@ -1063,7 +1053,6 @@ public class GuiController implements Initializable {
         // Reuse the same animation as level-up
         panel.showScore(children);
     }
-
     /**
      * Executes an action for each cell in a matrix
      *

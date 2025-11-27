@@ -18,7 +18,12 @@ import java.util.List;
 
 
 
-/**Generates the leader board table ,loads the entries and allows to go back to main menu after viewing the leader board */
+/**
+ * Controller for the leaderboard screen.
+ * <p>
+ * Loads saved score entries into a table and allows the user
+ * to return to the main menu.
+ */
 public class LeaderboardController {
 
     private static final String MAIN_MENU_FXML = "ui/mainMenu.fxml";
@@ -32,11 +37,14 @@ public class LeaderboardController {
     @FXML private TableColumn<ScoreEntry, String> colDate;
 
     private LeaderboardManager manager = new LeaderboardManager();
-
+    /**
+     * Initializes the leaderboard table by configuring column mappings
+     * and loading all stored score entries.
+     */
     @FXML
     public void initialize() throws IOException {
 
-        // Rank column (generated via index)
+        // Rank column
         colRank.setCellValueFactory(cell -> {
             int index = table.getItems().indexOf(cell.getValue()) + 1;
             return new javafx.beans.property.SimpleIntegerProperty(index);
@@ -46,7 +54,7 @@ public class LeaderboardController {
         colName.setCellValueFactory(new PropertyValueFactory<>("playerName"));
         colScore.setCellValueFactory(new PropertyValueFactory<>("score"));
 
-        // Convert LocalDateTime → formatted string
+        // Convert LocalDateTime to formatted string
         colDate.setCellValueFactory(cell ->
                 new javafx.beans.property.SimpleStringProperty(
                         cell.getValue().getTimestamp().format(
@@ -59,7 +67,12 @@ public class LeaderboardController {
 
         table.setItems(FXCollections.observableArrayList(entries));
     }
-
+    /**
+     * Returns the user to the main menu.
+     *
+     * @param actionEvent the button click event
+     * @throws  IOException if main menu fails to load
+     */
         @FXML
     private void backToMenu(ActionEvent actionEvent) throws Exception {
         URL location = getClass().getClassLoader().getResource(MAIN_MENU_FXML);
@@ -76,8 +89,8 @@ public class LeaderboardController {
     /**
      * Gets the current stage from the action event.
      *
-     * @param actionEvent The action event
-     * @return The current stage
+     * @param actionEvent The action event that triggered the navigation
+     * @return The current window stage
      */
     private Stage getCurrentStage(ActionEvent actionEvent) {
         return (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();

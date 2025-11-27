@@ -5,12 +5,27 @@ import java.io.*;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.*;
-/**Class to get the txt file with the score details, save a new score entry, load score entries and sort them in descending order*/
+/**
+ * Manages leaderboard entries by saving scores to a text file,
+ * loading them back into memory, and sorting them in descending order.
+ * <p>
+ * The leaderboard is persisted in a simple text file where each entry
+ * is stored as: {@code playerName;score;gameMode;timestamp}.
+ * </p>
+ */
 public class LeaderboardManager {
-
+    /** Path to the leaderboard file. */
     private static final String FILE_PATH = "leaderboard.txt";
 
-    // Save a new score entry
+    /**
+     * Saves a new score entry to the leaderboard file.
+     * Each entry is appended in the format:
+     * {@code playerName;score;gameMode;timestamp}.
+     *
+     * @param entry the score entry to save
+     * @throws IOException if writing to the file fails
+     */
+
     public void saveEntry(ScoreEntry entry) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
             writer.write(entry.getPlayerName() + ";" +
@@ -21,12 +36,22 @@ public class LeaderboardManager {
         }
     }
 
-    // Load all score entries
+    /**
+     * Loads all score entries from the leaderboard file.
+     * <p>
+     * If the file does not exist, an empty list is returned.
+     * Entries are parsed and sorted in descending order by score.
+     * </p>
+     *
+     * @return a list of score entries sorted by score (highest first)
+     * @throws IOException if reading from the file fails
+     */
+
     public List<ScoreEntry> loadEntries() throws IOException {
         List<ScoreEntry> entries = new ArrayList<>();
 
         if (!Files.exists(Paths.get(FILE_PATH)))
-            return entries;  // No file yet
+            return entries;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
@@ -41,13 +66,12 @@ public class LeaderboardManager {
                 LocalDateTime timestamp = LocalDateTime.parse(parts[3]);
 
                 ScoreEntry entry = new ScoreEntry(name, score, mode);
-                entry.setTimestamp(timestamp); // overwrite auto-now()
+                entry.setTimestamp(timestamp);
                 entries.add(entry);
             }
         }
 
-        // Sort by score descending
-        entries.sort((a, b) -> Integer.compare(b.getScore(), a.getScore()));
+        entries.sort(Comparator.comparingInt(ScoreEntry::getScore).reversed());
 
         return entries;
     }

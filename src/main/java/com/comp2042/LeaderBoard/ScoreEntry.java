@@ -18,15 +18,7 @@ public class ScoreEntry {
         this.timestamp = LocalDateTime.now();
     }
 
-    // Constructor for loading from file (ints)
-    public ScoreEntry(String playerName, int score, String gameMode, LocalDateTime timestamp) {
-        this.playerName = playerName;
-        this.score = new SimpleIntegerProperty(score);
-        this.gameMode = gameMode;
-        this.timestamp = timestamp;
-    }
 
-    // Constructor for new score (int)
     public ScoreEntry(String playerName, int score, String gameMode) {
         this(playerName, new SimpleIntegerProperty(score), gameMode);
     }
@@ -38,11 +30,7 @@ public class ScoreEntry {
 
 
     public int getScore() {
-        return score.get();         // <- IMPORTANT
-    }
-
-    public IntegerProperty scoreProperty() {
-        return score;               // <- REQUIRED BY TABLEVIEW
+        return score.get();
     }
 
     public String getGameMode() {
@@ -53,7 +41,7 @@ public class ScoreEntry {
         return timestamp;
     }
 
-    // Optional: Setters if needed
+
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
     }
@@ -70,7 +58,7 @@ public class ScoreEntry {
         this.timestamp = timestamp;
     }
 
-    // Optional: toString for debugging
+
     public String toString() {
         return String.format(
                 "Player: %s | Score: %d | Mode: %s | Time: %s",
