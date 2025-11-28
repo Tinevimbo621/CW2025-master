@@ -103,3 +103,17 @@
        -fx-border-radius: 50;
 
 }
+.timer-label {
+    -fx-font-size: 40px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-family: "Let's go Digital";
+}
+
+
+.lines-label {
+    -fx-font-size: 25px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-family: "Let's go Digital";
+}

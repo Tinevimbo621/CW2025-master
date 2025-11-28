@@ -57,10 +57,12 @@ public class MainMenuController {
     private static final double SCENE_HEIGHT = 800.0;
     private static final int ULTRA_TIME_LIMIT_SECONDS = 120;
 
+    private static final Insets LABEL_MARGIN = new Insets(10);
+
     // UI Styling Constants
     private static final String TIMER_LABEL_STYLE = "-fx-font-size: 40px; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\";";
     private static final String LINES_LABEL_STYLE = "-fx-font-size: 25px; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\";";
-    private static final Insets LABEL_MARGIN = new Insets(10);
+
 
     //GAME MODES
     /**
@@ -157,9 +159,9 @@ public class MainMenuController {
 
             GuiController guiController = loader.getController();
             String playerName = getValidatedPlayerName();
-            new GameController(guiController, playerName, mode.getName());
+            GameController gameController = new GameController(guiController, playerName, mode.getName());
 
-            applyModeSpecificFeatures(guiController, gameScene, mode);
+            applyModeSpecificFeatures(guiController, gameScene, mode,gameController);
             switchToGameScene(gameScene, mode);
 
         } catch (Exception e) {
@@ -211,11 +213,11 @@ public class MainMenuController {
      * @param gameScene The game scene
      * @param mode The game mode
      */
-    private void applyModeSpecificFeatures(GuiController guiController, Scene gameScene, GameMode mode) {
+    private void applyModeSpecificFeatures(GuiController guiController, Scene gameScene, GameMode mode, GameController gameController) {
         StackPane root = (StackPane) gameScene.getRoot();
 
         if (mode.hasTimer()) {
-            setupTimerFeature(guiController, root);
+            setupTimerFeature(guiController, root, gameController);
             guiController.getLevelLabel().setVisible(false);
         }else {
             guiController.getLevelLabel().setVisible(true);
@@ -233,20 +235,20 @@ public class MainMenuController {
      * @param guiController The GUI controller
      * @param root The root StackPane of the scene
      */
-    private void setupTimerFeature(GuiController guiController, StackPane root) {
+    private void setupTimerFeature(GuiController guiController, StackPane root,GameController gameController) {
         IntegerProperty timeLeft = new SimpleIntegerProperty(ULTRA_TIME_LIMIT_SECONDS);
 
 
         Label timerLabel = new Label();
         timerLabel.textProperty().bind(Bindings.concat("Time: ", timeLeft.asString()));
-        timerLabel.setStyle(TIMER_LABEL_STYLE);
+        timerLabel.getStyleClass().add("timer-label");
 
         StackPane.setAlignment(timerLabel, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(timerLabel, LABEL_MARGIN);
         root.getChildren().add(timerLabel);
 
         guiController.initializeTimer(timeLeft, ULTRA_TIME_LIMIT_SECONDS);
-        guiController.getGameController().startLevel();
+
 
         guiController.getLevelLabel().setVisible(false);
     }
@@ -259,7 +261,7 @@ public class MainMenuController {
      */
     private void setupLineCounterFeature(GuiController guiController, StackPane root) {
         Label linesLabel = new Label("Lines Cleared: 0");
-        linesLabel.setStyle(LINES_LABEL_STYLE);
+        linesLabel.getStyleClass().add("lines-label");
 
         StackPane.setAlignment(linesLabel, Pos.BOTTOM_LEFT);
         StackPane.setMargin(linesLabel, LABEL_MARGIN);

@@ -9,6 +9,7 @@ import com.comp2042.model.SimpleBoard;
 import com.comp2042.model.ViewData;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.util.Duration;
 
@@ -36,10 +37,13 @@ public class GameController implements InputEventListener {
 
     //Game Components
     private final Board board ;
+    private final BrickMover brickMover;
     private final LeaderboardManager leaderboardManager ;
     private final GuiController viewGuiController;
     private final GhostPieceManager ghostPieceManager;
     private Timeline gameTimeline;
+    private Timeline levelTimer;
+    private IntegerProperty levelTimerProperty;
 
     //Game state variables
     private final String playerName;
@@ -49,6 +53,12 @@ public class GameController implements InputEventListener {
     private int currentLevel = 1;
     private int linesClearedThisLevel = 0;
     private boolean levelWon = false;
+
+    private static final int[] DROP_DELAYS_MS = {
+            1000, 900, 800, 700, 600, 500, 400, 300, 200, 100
+    };
+    private static final int MAX_LEVEL = DROP_DELAYS_MS.length;
+
     /**
      * Constructs a new GameController with the specified GUI controller and game settings.
      *
@@ -62,6 +72,7 @@ public class GameController implements InputEventListener {
         this.playerName = sanitizePlayerName(playerName);
         this.gameMode = mode;
         this.board = createGameBoard();
+        this.brickMover = new BrickMover(this.board);
         this.leaderboardManager = new LeaderboardManager();
         this.ghostPieceManager = new GhostPieceManager(board);
 
@@ -72,8 +83,93 @@ public class GameController implements InputEventListener {
                 handleLevelComplete();
             }
         });
+        board.getScore().levelProperty().addListener((obs, oldLevel, newLevel) -> {
+            handleAdaptiveSpeed(newLevel.intValue());
+        });
         initializeGame();
+        startGameLoop();
 
+
+    }
+// Add new public method called by GuiController
+    /**
+     * Called by GuiController to initialize and start the game timer.
+     * @param timeLeftProperty The property to decrement every second.
+     */
+    public void startGameTimer(IntegerProperty timeLeftProperty) {
+        this.levelTimerProperty = timeLeftProperty;
+        startLevelTimer(timeLeftProperty);
+    }
+
+    // Private worker method for the actual timer logic
+    private void startLevelTimer(IntegerProperty timeLeft) {
+        if (levelTimer != null) {
+            levelTimer.stop();
+        }
+
+        levelTimer = new Timeline(
+                new KeyFrame(
+                        Duration.seconds(1),
+                        event -> {
+                            if (timeLeft.get() > 0) {
+                                timeLeft.set(timeLeft.get() - 1);
+                            } else {
+                                levelTimer.stop();
+                                // Game over logic for timed modes
+                                if (isSprintMode() || ULTRA_MODE.equalsIgnoreCase(gameMode)) {
+                                    handleGameOver();
+                                }
+                            }
+                        }
+                )
+        );
+        levelTimer.setCycleCount(Timeline.INDEFINITE);
+        levelTimer.play();
+    }
+
+    public void startGameLoop() {
+        int delay = getDropDelayForLevel(board.getScore().getLevel());
+
+        if (gameTimeline != null) {
+            gameTimeline.stop();
+        }
+
+        gameTimeline = new Timeline(new KeyFrame(
+                Duration.millis(delay),
+                e -> executeAutoDropLogic()
+        ));
+        gameTimeline.setCycleCount(Timeline.INDEFINITE);
+        gameTimeline.play();
+
+
+        Platform.runLater(this::executeAutoDropLogic);
+    }
+
+    public void stopGameLoop() {
+        if (gameTimeline != null) {
+            gameTimeline.stop();
+        }
+        if (levelTimer != null) {
+            levelTimer.stop();
+        }
+    }
+
+    public void pauseGame() {
+        if (gameTimeline != null) {
+            gameTimeline.pause();
+        }
+        if (levelTimer != null) {
+            levelTimer.pause();
+        }
+    }
+
+    public void resumeGame() {
+        if (gameTimeline != null) {
+            gameTimeline.play();
+        }
+        if (levelTimer != null) {
+            levelTimer.play();
+        }
     }
 
 
@@ -98,6 +194,7 @@ public class GameController implements InputEventListener {
         try {
             setupGameBoard();
             configureGuiController();
+            viewGuiController.refreshBrick(board.getViewData());
             bindGameProperties();
             updateNextBrickPreview();
         } catch (Exception e) {
@@ -110,6 +207,7 @@ public class GameController implements InputEventListener {
      */
     private void setupGameBoard() {
         board.createNewBrick();
+
     }
 
     /**
@@ -127,7 +225,20 @@ public class GameController implements InputEventListener {
         viewGuiController.bindScore(board.getScore().scoreProperty());
         viewGuiController.bindLevel(board.getScore().levelProperty());
     }
-
+// Update existing resetTimer to restart the timeline
+    /**
+     * Reset the timer to a specific number of seconds.
+     * @param seconds number of seconds to be reset to
+     */
+    public void resetTimer(int seconds) {
+        if (this.levelTimerProperty != null) {
+            this.levelTimerProperty.set(seconds);
+            if (levelTimer != null) {
+                levelTimer.stop();
+                startLevelTimer(this.levelTimerProperty);
+            }
+        }
+    }
     /**
      * Starts or restarts the current level with appropriate setup.
      *
@@ -140,7 +251,7 @@ public class GameController implements InputEventListener {
         this.levelWon = false;
 
         try {
-            viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
+            resetTimer(LEVEL_TIME_LIMIT_SECONDS);
             viewGuiController.resetLinesCleared();
         } catch (Exception e) {
             handleGameError("Failed to reset level timer", e);
@@ -208,7 +319,7 @@ public class GameController implements InputEventListener {
      * @return true if movement is possible
      */
     private boolean canMoveDown() {
-        return board.moveBrickDown();
+        return brickMover.canMoveDown();
     }
 
     /**
@@ -355,7 +466,7 @@ public class GameController implements InputEventListener {
     @Override
     public ViewData onLeftEvent(MoveEvent event) {
         try {
-            board.moveBrickLeft();
+           brickMover.moveLeft();
             return board.getViewData();
 
     } catch (Exception e) {
@@ -372,7 +483,7 @@ public class GameController implements InputEventListener {
     @Override
     public ViewData onRightEvent(MoveEvent event) {
         try {
-            board.moveBrickRight();
+            brickMover.moveRight();
             return board.getViewData();
         } catch (Exception e) {
             handleGameError("Error during right movement", e);
@@ -389,59 +500,14 @@ public class GameController implements InputEventListener {
     @Override
     public ViewData onRotateEvent(MoveEvent event) {
         try {
-            board.rotateLeftBrick();
+
+            brickMover.rotate();
             return board.getViewData();
         } catch (Exception e) {
             handleGameError("Error during rotation", e);
             return board.getViewData();
         }
     }
-    /**
-     * Handles hard drop events.
-     *
-     * @param event The move event
-     * @return Updated ViewData after instant drop
-     */
-    @Override
-    public ViewData onHardDropEvent(MoveEvent event) {
-        try {
-            ViewData brick = board.getViewData();
-            int dropDistance = getGhostDrop(brick);
-
-            for (int i = 0; i < dropDistance; i++) {
-                board.moveBrickDown();
-            }
-            board.getScore().add(dropDistance * 2);
-            board.mergeBrickToBackground();
-
-            ClearRow clearRow = board.clearRows();
-            if (clearRow != null && clearRow.getLinesRemoved() > 0) {
-                board.getScore().add(clearRow.getScoreBonus());
-                comboCount++;
-                int comboBonus = comboCount * 25;
-                board.getScore().add(comboBonus);
-                viewGuiController.updateLinesCleared(clearRow.getLinesRemoved());
-                viewGuiController.showComboNotification(comboCount, comboBonus);
-            }else {
-                comboCount = 0;
-            }
-            if (board.createNewBrick()) {
-                handleGameOver();
-            } else {
-                viewGuiController.updateNextShapesPreview(
-                        board.getViewData().getNextBricksData()
-                );
-            }
-            viewGuiController.refreshGameBackground(board.getBoardMatrix());
-            return board.getViewData();
-
-        }catch (Exception e) {
-            handleGameError("Error during hard drop", e);
-            return board.getViewData();
-        }
-    }
-
-
     /**
      * Creates a new game instance.
      */
@@ -459,8 +525,7 @@ public class GameController implements InputEventListener {
 
             }
             viewGuiController.updateNextShapesPreview(
-                    board.getViewData().getNextBricksData()
-            );
+                    board.getViewData().getNextBricksData());
             viewGuiController.updateHeldBrick(
                     board.getViewData().getHeldBrickData()
             );
@@ -579,114 +644,7 @@ public class GameController implements InputEventListener {
         handleError("INITIALIZATION", message, exception);
 
     }
-    /**
-     * Inner class for managing ghost piece calculations and positioning.
-     * Encapsulates all ghost piece related logic.
-     */
-    private static class GhostPieceManager {
-        private final Board board;
 
-        /**
-         * Constructs a GhostPieceManager with the specified board.
-         *
-         * @param board The game board
-         */
-        public GhostPieceManager(Board board) {
-            this.board = board;
-        }
-
-        /**
-         * Calculates the maximum drop distance for a ghost piece.
-         *
-         * @param brick The brick data
-         * @return Maximum drop distance
-         */
-    public int getGhostDropDistance(ViewData brick) {
-        int[][] grid = board.getBoardMatrix();
-        int[][] shape = brick.getBrickData();
-        int startX = brick.getxPosition();
-        int startY = brick.getyPosition();
-
-        return findMaximumDropDistance(shape, startX, startY, grid);
-    }
-        /**
-         * Finds the maximum distance a shape can drop.
-         *
-         * @param shape The shape matrix
-         * @param x Starting X position
-         * @param y Starting Y position
-         * @param grid The game grid
-         * @return Maximum drop distance
-         */
-        private int findMaximumDropDistance(int[][] shape, int x, int y, int[][] grid) {
-            int maxDrop = 0;
-
-
-            while (canPlaceShape(shape, x, y + maxDrop + 1, grid)) {
-                maxDrop++;
-            }
-
-            return maxDrop;
-        }
-
-        /**
-         * Checks if a shape can be placed at the specified position.
-         *
-         * @param shape The shape matrix
-         * @param x X position
-         * @param y Y position
-         * @param grid The game grid
-         * @return true if placement is valid
-         */
-
-        private boolean canPlaceShape(int[][] shape, int x, int y, int[][] grid) {
-            for (int row = 0; row < shape.length; row++) {
-                for (int col = 0; col < shape[row].length; col++) {
-                    if (shape[row][col] != 0) {
-                        if (!isValidShapePosition(row, col, x, y, grid)) {
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
-        }
-
-        /**
-         * Validates if a shape position is valid.
-         *
-         * @param row Shape row index
-         * @param col Shape column index
-         * @param x Shape X position
-         * @param y Shape Y position
-         * @param grid The game grid
-         * @return true if position is valid
-         */
-        private boolean isValidShapePosition(int row, int col, int x, int y, int[][] grid) {
-            int gridY = y + row;
-            int gridX = x + col;
-
-            // Check boundaries
-            if (isOutOfBounds(gridY, gridX, grid)) {
-                return false;
-            }
-
-            // Check collision with existing blocks
-            return grid[gridY][gridX] == 0;
-        }
-
-        /**
-         * Checks if grid coordinates are out of bounds.
-         *
-         * @param y Y coordinate
-         * @param x X coordinate
-         * @param grid The game grid
-         * @return true if coordinates are out of bounds
-         */
-        private boolean isOutOfBounds(int y, int x, int[][] grid) {
-            return y >= grid.length || x < 0 || x >= grid[0].length;
-        }
-    }
     private void handleLevelComplete() {
         viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
         board.getScore().levelProperty().set(board.getScore().getLevel() + 1);
@@ -694,16 +652,95 @@ public class GameController implements InputEventListener {
         viewGuiController.resetLinesCleared();
     }
 
-
     @Override
     public ViewData onHoldEvent(MoveEvent event) {
         try {
-            board.holdBrick();
+            brickMover.hold();
             ViewData view = board.getViewData();
             viewGuiController.updateHeldBrick(view.getHeldBrickData());
             return view;
         } catch (Exception e) {
             handleGameError("Error during brick hold", e);
+            return board.getViewData();
+        }
+    }
+    // GameController.java (New Private Methods)
+    private int getDropDelayForLevel(int level) {
+        int index = Math.min(level, MAX_LEVEL) - 1;
+        if (index < 0) return DROP_DELAYS_MS[0];
+        return DROP_DELAYS_MS[index];
+    }
+
+    private void executeAutoDropLogic() {
+        // This calls your existing onDownEvent(MoveEvent)
+        onDownEvent(new MoveEvent(EventType.DOWN, EventSource.THREAD));
+        viewGuiController.refreshBrick(board.getViewData());
+    }
+
+    private Timeline createGameTimeline(int delayMs) {
+        Timeline timer = new Timeline(
+                new KeyFrame(
+                        Duration.millis(delayMs),
+                        event -> executeAutoDropLogic()
+                )
+        );
+        timer.setCycleCount(Timeline.INDEFINITE);
+        return timer;
+    }
+
+    private void handleAdaptiveSpeed(int newLevel) {
+        if (gameTimeline != null) {
+            gameTimeline.stop();
+        }
+
+        int newDelayMs = getDropDelayForLevel(newLevel);
+        gameTimeline = createGameTimeline(newDelayMs);
+        gameTimeline.play();
+    }
+
+    /**
+     * Executes the movement part of a hard drop and updates score.
+     */
+    private void executeHardDropMovementAndScore(ViewData brick) {
+        int dropDistance = getGhostDrop(brick);
+        for (int i = 0; i < dropDistance; i++) {
+            brickMover.drop();
+        }
+        board.getScore().add(dropDistance * HARD_DROP_SCORE_MULTIPLIER);
+    }
+
+    /**
+     * Processes the final steps of brick placement: merge, clear, combo, and new piece spawn.
+     * This can reuse the handleBlockedMove logic but tailored for hard drop.
+     */
+    private void processHardDropPlacementCompletion() {
+        board.mergeBrickToBackground();
+
+        ClearRow clearRow = processRowClearing();
+
+        // Reuses the logic for combo and score updates
+        handleComboAndNotifications(clearRow);
+
+        // Handles new piece spawn or game over
+        handleBrickPlacementComplete(clearRow);
+    }
+
+    // GameController.java (Updated onHardDropEvent)
+    @Override
+    public ViewData onHardDropEvent(MoveEvent event) {
+        try {
+            executeHardDropMovementAndScore(board.getViewData());
+
+            processHardDropPlacementCompletion();
+
+
+            viewGuiController.refreshGameBackground(board.getBoardMatrix());
+            viewGuiController.updateNextShapesPreview(board.getViewData().getNextBricksData());
+
+            return board.getViewData();
+
+        }catch (Exception e) {
+            handleGameError("Error during hard drop", e);
             return board.getViewData();
         }
     }
