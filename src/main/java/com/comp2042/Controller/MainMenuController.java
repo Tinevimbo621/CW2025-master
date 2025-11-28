@@ -217,10 +217,13 @@ public class MainMenuController {
         if (mode.hasTimer()) {
             setupTimerFeature(guiController, root);
             guiController.getLevelLabel().setVisible(false);
+        }else {
+            guiController.getLevelLabel().setVisible(true);
         }
         if (mode.hasLineCounter()) {
             setupLineCounterFeature(guiController, root);
         }
+
 
     }
     //Time feature

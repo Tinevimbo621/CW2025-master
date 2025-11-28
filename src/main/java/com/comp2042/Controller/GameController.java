@@ -26,14 +26,13 @@ public class GameController implements InputEventListener {
     private static final int LEVEL_TIME_LIMIT_SECONDS = 120;
     private static final int HARD_DROP_SCORE_MULTIPLIER = 2;
     private static final int COMBO_SCORE_BONUS = 25;
-    private static final int[] DROP_DELAYS_MS = {
-            1000, 900, 800, 700, 600, 500, 400, 300, 200, 100
-    };
 
-    //  Maximum level supported by our speed table
-    private static final int MAX_LEVEL = DROP_DELAYS_MS.length;
+
+
     /** Game mode identifier for Sprint mode */
     private static final String SPRINT_MODE = "Sprint";
+    private static final String ULTRA_MODE = "Ultra";
+
 
     //Game Components
     private final Board board ;
@@ -451,7 +450,21 @@ public class GameController implements InputEventListener {
         try {
             board.newGame();
             this.currentLevel = 1;
-            startLevel();
+            if (isSprintMode()) {
+                startLevel();
+            }
+
+            if (ULTRA_MODE.equalsIgnoreCase(gameMode)) {
+                viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
+
+            }
+            viewGuiController.updateNextShapesPreview(
+                    board.getViewData().getNextBricksData()
+            );
+            viewGuiController.updateHeldBrick(
+                    board.getViewData().getHeldBrickData()
+            );
+
             viewGuiController.refreshGameBackground(board.getBoardMatrix());
         } catch (Exception e) {
             handleGameError("Error creating new game", e);
@@ -680,16 +693,7 @@ public class GameController implements InputEventListener {
         viewGuiController.showLevelUpNotification(board.getScore().getLevel());
         viewGuiController.resetLinesCleared();
     }
-    /**
-     * Calculates the drop speed delay for a given level.
-     */
-    private int getDropDelayForLevel(int level) {
-        int index = Math.min(level, MAX_LEVEL) - 1;
-        // Ensure index is not negative
-        if (index < 0) return DROP_DELAYS_MS[0];
 
-        return DROP_DELAYS_MS[index];
-    }
 
     @Override
     public ViewData onHoldEvent(MoveEvent event) {

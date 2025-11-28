@@ -5,6 +5,7 @@ import com.comp2042.model.DownData;
 import com.comp2042.model.ViewData;
 import com.comp2042.ui.GameOverPanel;
 import com.comp2042.ui.NotificationPanel;
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -65,6 +66,8 @@ public class GuiController implements Initializable {
     private static final int NEXT_BRICK_CELL_SIZE = BRICK_SIZE;
     private static final double SCENE_WIDTH = 900.0;
     private static final double SCENE_HEIGHT = 800.0;
+    private double currentSpeedMs = GAME_SPEED_MILLIS;   // dynamic falling speed
+
 
     // Font and FXML paths
     private static final String FONT_PATH = "digital.ttf";
@@ -547,14 +550,37 @@ public class GuiController implements Initializable {
     /**
      * Starts the game timeline for automatic movement.
      */
-    private void startGameTimeline() {
+    public void startGameTimeline() {
+        if (gameTimeline != null) {
+            gameTimeline.stop();
+        }
+
         gameTimeline = new Timeline(new KeyFrame(
-                Duration.millis(GAME_SPEED_MILLIS),
+                Duration.millis(currentSpeedMs),
                 event -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))
         ));
         gameTimeline.setCycleCount(Timeline.INDEFINITE);
         gameTimeline.play();
     }
+    public void updateFallingSpeed(int level) {
+
+        double base = GAME_SPEED_MILLIS;
+        double factor = 0.90;
+
+        currentSpeedMs = Math.max(60, base * Math.pow(factor, level - 1));
+
+        // restart timeline with new interval
+        if (gameTimeline != null) {
+            boolean running = gameTimeline.getStatus() == Animation.Status.RUNNING;
+            gameTimeline.stop();
+            gameTimeline.getKeyFrames().setAll(
+                    new KeyFrame(Duration.millis(currentSpeedMs),
+                            event -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD)))
+            );
+            if (running) gameTimeline.play();
+        }
+    }
+
     /**
      * Gets the fill color for a given color index.
      *
@@ -759,6 +785,9 @@ public class GuiController implements Initializable {
      */
     public void bindLevel(IntegerProperty levelProperty) {
             levelLabel.textProperty().bind(levelProperty.asString("%d"));
+        levelProperty.addListener((obs, oldVal, newVal) -> {
+            updateFallingSpeed(newVal.intValue());
+        });
     }
     public Label getLevelLabel() {
         return levelLabel;
