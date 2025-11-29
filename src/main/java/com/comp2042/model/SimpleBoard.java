@@ -188,7 +188,7 @@ public class SimpleBoard implements Board {
 
         // Shape for collision testing
         int[][] shape = brickRotator.getCurrentShape();
-        currentOffset = new Point((width -shape[0].length) / 2, 0);
+        currentOffset = new Point((width -shape[0].length) / 2, 1);
 
         // Check if spawning overlaps existing blocks
         boolean conflict = MatrixOperations.intersect(

@@ -7,7 +7,7 @@ package com.comp2042.model;
  * </p>
  */
 
-public final class ViewData {
+public class ViewData {
     /** Matrix representing the currently active brick. */
     private final int[][] brickData;
     /** The horizontal position of the active brick. */
