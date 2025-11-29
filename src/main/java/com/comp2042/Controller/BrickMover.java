@@ -59,6 +59,11 @@ public class BrickMover {
         board.holdBrick();
     }
 
+    /**
+     * Attempts to move the active brick downward.
+     *
+     * @return {@code true} if the brick was moved down successfully, {@code false} otherwise
+     */
     public boolean canMoveDown() {
         return board.moveBrickDown();
     }

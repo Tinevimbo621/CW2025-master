@@ -138,8 +138,6 @@ public class GuiController implements Initializable {
             System.err.println("Warning: Failed to load custom font: " + FONT_PATH);
         }
     }
-
-
     //keyboard input handling
     /**
      * Connects keyboard input to the game panel.
@@ -180,26 +178,44 @@ public class GuiController implements Initializable {
         return reflection;
     }
     //Public Game State Methods
+    /**
+     * Returns whether the game is currently paused.
+     *
+     * @return true if the game is paused, false otherwise
+     */
+
     public boolean isPaused() {
         return isPaused.get();
     }
+    /**
+     * Returns whether the game has reached a game-over state.
+     *
+     * @return true if the game is over, false otherwise
+     */
 
     public boolean isGameOver() {
         return isGameOver.get();
     }
 
+    /**
+     * Requests focus for the game panel so it can receive keyboard input.
+     * Called after actions that may steal focus, such as popups or UI updates.
+     */
+
     public void requestFocus() {
         gamePanel.requestFocus();
-    }
-
-    public int getTimeLeft() {
-        return timeLeft != null ? timeLeft.get() : Integer.MAX_VALUE;
     }
 
     public Label getLevelLabel() {
         return levelLabel;
     }
-    // Rendering Methods
+    /**
+     * Refreshes the active brick and ghost piece on the board.
+     * Delegates rendering to the GameRenderer.
+     *
+     * @param data the updated brick view model containing shape and position
+     */
+
     public void refreshBrick(ViewData data) {
         if (!isPaused.get()) {
             Platform.runLater(() -> {
@@ -209,12 +225,22 @@ public class GuiController implements Initializable {
         }
     }
 
-    // Add method to expose updateNextShapesPreview
+    /**
+     * Updates the UI component that displays the next upcoming tetrominoes.
+     *
+     * @param nextShapes an array of matrices representing the next pieces
+     */
+
     public void updateNextShapesPreview(int[][][] nextShapes) {
         renderer.updateNextShapesPreview(nextShapes);
     }
 
-    // Add method to expose updateHeldBrick
+    /**
+     * Updates the display for the currently held brick.
+     *
+     * @param heldMatrix the matrix representation of the held tetromino
+     */
+
     public void updateHeldBrick(int[][] heldMatrix) {
         renderer.updateHeldBrick(heldMatrix);
     }
@@ -261,8 +287,11 @@ public class GuiController implements Initializable {
         }
     }
     /**
-     * Starts a new game.
+     * Starts a completely new game session.
+     * Resets UI state, clears game over screens,
+     * and asks GameController to create a fresh game instance.
      */
+
     public void newGame() {
         resetGameState();
         eventListener.createNewGame();
@@ -270,7 +299,8 @@ public class GuiController implements Initializable {
 
     }
     /**
-     * Resets the game state to initial values.
+     * Resets UI-related flags and hides the game-over panel
+     * in preparation for a new game or restart.
      */
     private void resetGameState() {
         gameOverPanel.setVisible(false);
@@ -279,7 +309,8 @@ public class GuiController implements Initializable {
         isGameOver.set(false);
     }
     /**
-     * Handles game over state.
+     * Displays the game-over UI, stops game logic,
+     * and prevents further input until the user restarts.
      */
     public void gameOver() {
         gameController.stopGameLoop();
@@ -288,6 +319,10 @@ public class GuiController implements Initializable {
         gameOverPanel.setMouseTransparent(false);
         isGameOver.set(true);
     }
+    /**
+     * Delegates game-over handling to the GameController.
+     * Called when the active tetromino can no longer be placed.
+     */
 
     void handleGameOver() {
         if (gameController != null) {
@@ -319,23 +354,25 @@ public class GuiController implements Initializable {
     }
 
     /**
-     * Pauses the game.
+     * Pauses the game immediately.
+     * Stops the game loop and updates the pause button label.
      */
+
     private void pauseGameInternal() {
         gameController.pauseGame();
         pauseButton.setText("Resume");
         isPaused.set(true);
     }
     /**
-     * Resumes the game after having been paused.
-     *FROM PRESSING P
+     * Resumes gameplay specifically when triggered by keyboard input (key P).
+     * Bypasses ActionEvent-based handlers.
      */
     public void resumeGameDirect() {
         resumeGame();
     }
     /**
-     * Pauses the game immediately when called programmatically.
-     *FROM PRESSING P
+     * Pauses gameplay specifically when triggered by keyboard input (key P).
+     * Bypasses ActionEvent-based handlers.
      */
     public void pauseGameDirect() {
         pauseGameInternal();
@@ -344,10 +381,11 @@ public class GuiController implements Initializable {
     // ==================== LINES CLEARED & SCORING ====================
 
     /**
-     * Sets the lines cleared label for tracking progress.
+     * Assigns the UI label used to display the number of lines cleared.
      *
-     * @param label The label to use for displaying lines cleared
+     * @param label the label to update when lines are removed
      */
+
     public void setLinesLabel(Label label) {
         this.linesLabel = label;
     }
@@ -365,10 +403,11 @@ public class GuiController implements Initializable {
         }
     }
     /**
-     * Updates the lines cleared count and display.
+     * Updates the total lines-cleared counter and notifies the GameController.
      *
-     * @param linesRemoved Number of lines removed
+     * @param linesRemoved the number of lines removed in a single move
      */
+
     void updateLinesCleared(int linesRemoved) {
         totalClearedRows += linesRemoved;
         if (linesLabel != null) {
@@ -381,6 +420,11 @@ public class GuiController implements Initializable {
             levelCompleteHandler.run();
         }
     }
+    /**
+     * Resets the displayed counter for lines cleared to zero,
+     * typically when starting a new level or game.
+     */
+
     public void resetLinesCleared() {
         totalClearedRows = 0;
         if (linesLabel != null) {
@@ -388,8 +432,12 @@ public class GuiController implements Initializable {
         }
     }
     /**
-     * Called by GameController to subscribe to level-complete events.
+     * Registers a callback invoked when the required number of lines
+     * for the current level has been cleared.
+     *
+     * @param handler the action to run upon level completion
      */
+
     public void setOnLevelComplete(Runnable handler) {
         this.levelCompleteHandler = handler;
     }
@@ -422,10 +470,12 @@ public class GuiController implements Initializable {
 
     }
     /**
-     * Shows combo popup (“Combo xN! (+score)”).
-     * @param combo number of lines cleared one after the other
-     * @param bonus points to be added to score
+     * Displays a popup on screen indicating a combo achievement.
+     *
+     * @param combo number of consecutive line clears
+     * @param bonus score bonus awarded for the combo
      */
+
     public void showComboNotification(int combo, int bonus) {
         String message = "COMBO x" + combo + "  (+" + bonus + ")";
         NotificationPanel panel = new NotificationPanel(message);
@@ -461,7 +511,8 @@ public class GuiController implements Initializable {
     }
 
     /**
-     * Navigate to main menu (used by GameOverPanel callbacks).
+     * Navigates back to the main menu screen programmatically,
+     * from game-over actions.
      */
     private void navigateToMainMenu() {
         Platform.runLater(() -> {
@@ -474,8 +525,10 @@ public class GuiController implements Initializable {
     }
 
     /**
-     * Navigate to leaderboard (used by GameOverPanel callbacks).
+     * Navigates to the leaderboard screen programmatically,
+     * from game-over actions.
      */
+
     private void navigateToLeaderboard() {
         Platform.runLater(() -> {
             try {
@@ -512,6 +565,13 @@ public class GuiController implements Initializable {
             levelLabel.textProperty().bind(levelProperty.asString("%d"));
 
     }
+    /**
+     * Injects the GameController dependency so this UI controller
+     * can trigger game logic and receive events.
+     *
+     * @param controller the game controller instance
+     */
+
     public void setGameController(GameController controller) {
         this.gameController = controller;
 
@@ -532,6 +592,7 @@ public class GuiController implements Initializable {
     }
 
     // ==================== FUNCTIONAL INTERFACE ====================
+
     @FunctionalInterface
     interface CellAction {
         void apply(int row, int col, int value);

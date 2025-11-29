@@ -5,7 +5,6 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 /**
  * Utility class for managing background music playback.
- *
  * Provides methods to initialize, play, and pause looping background audio.
  *
  */
@@ -38,7 +37,6 @@ public class SoundManager {
     /**
      * Pauses background music playback.
      */
-
     public static void pauseBackground() {
         if (bgPlayer != null) bgPlayer.pause();
     }

@@ -5,8 +5,13 @@ import com.comp2042.model.ViewData;
 
 /**
  * Manages the calculation and positioning logic for the ghost piece.
- * Separated to improve file organization and reduce coupling in GameController.
+ * <p>
+ * The ghost piece is a visual aid that shows where the active brick
+ * would land if dropped instantly. This class encapsulates the logic
+ * for determining its position, improving file organization and reducing
+ * coupling in {@code GameController}.
  */
+
 public class GhostPieceManager {
     private final Board board;
 
@@ -34,6 +39,15 @@ public class GhostPieceManager {
         return findMaximumDropDistance(shape, startX, startY, grid);
     }
 
+    /**
+     * Iteratively checks how far the brick can drop before colliding.
+     *
+     * @param shape the brick's shape matrix
+     * @param x     the starting x-coordinate
+     * @param y     the starting y-coordinate
+     * @param grid  the game board matrix
+     * @return the maximum drop distance
+     */
 
     private int findMaximumDropDistance(int[][] shape, int x, int y, int[][] grid) {
         int maxDrop = 0;
@@ -42,6 +56,16 @@ public class GhostPieceManager {
         }
         return maxDrop;
     }
+    /**
+     * Checks if a brick shape can be placed at the given coordinates
+     * without overlapping existing blocks or going out of bounds.
+     *
+     * @param shape the brick's shape matrix
+     * @param x     the x-coordinate
+     * @param y     the y-coordinate
+     * @param grid  the game board matrix
+     * @return {@code true} if placement is valid, {@code false} otherwise
+     */
 
     private boolean canPlaceShape(int[][] shape, int x, int y, int[][] grid) {
         for (int row = 0; row < shape.length; row++) {
@@ -55,6 +79,17 @@ public class GhostPieceManager {
         }
         return true;
     }
+    /**
+     * Validates whether a single block of a brick can be placed
+     * at the given grid coordinates.
+     *
+     * @param row  the row index within the shape
+     * @param col  the column index within the shape
+     * @param x    the x-coordinate on the board
+     * @param y    the y-coordinate on the board
+     * @param grid the game board matrix
+     * @return {@code true} if the position is valid, {@code false} otherwise
+     */
 
     private boolean isValidShapePosition(int row, int col, int x, int y, int[][] grid) {
         int gridY = y + row;
@@ -66,6 +101,14 @@ public class GhostPieceManager {
 
         return grid[gridY][gridX] == 0;
     }
+    /**
+     * Checks whether the given coordinates are outside the board boundaries.
+     *
+     * @param y    the y-coordinate on the board
+     * @param x    the x-coordinate on the board
+     * @param grid the game board matrix
+     * @return {@code true} if out of bounds, {@code false} otherwise
+     */
 
     private boolean isOutOfBounds(int y, int x, int[][] grid) {
         return y >= grid.length || x < 0 || x >= grid[0].length;

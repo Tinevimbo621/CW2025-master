@@ -8,7 +8,18 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
-
+/**
+ * Responsible for all visual rendering operations in the Tetris game.
+ *
+ * <p>This class draws the following elements onto the JavaFX UI:</p>
+ * <ul>
+ *     <li>The game board (background grid)</li>
+ *     <li>The active falling brick</li>
+ *     <li>The ghost/preview position of the brick</li>
+ *     <li>The next upcoming bricks</li>
+ *     <li>The held piece panel</li>
+ * </ul>
+ */
 public class GameRenderer {
         private static final int BRICK_SIZE = 20;
         private static final int BOARD_START_ROW = 2;
