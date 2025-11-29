@@ -12,12 +12,9 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Group;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -28,9 +25,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
-import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 /**
@@ -49,47 +44,12 @@ import java.util.ResourceBundle;
 public class GuiController implements Initializable {
 
     // UI Constants
-
-    private static final double SCENE_WIDTH = 900.0;
-    private static final double SCENE_HEIGHT = 800.0;
-
-
-
-    // Font and FXML paths
     private static final String FONT_PATH = "digital.ttf";
-    private static final String MAIN_MENU_FXML = "ui/mainMenu.fxml";
-
-  GameOverPanel gameOverPanel = new GameOverPanel(
-            () -> {
-                try {
-                    mainmenuDirect();
-                } catch (Exception e) {
-                    System.err.println("Failed to open main menu: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            },
-            () -> {
-                try {
-                    leaderBoardDirect();
-                } catch (Exception e) {
-                    System.err.println("Failed to open leaderboard: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-    );
-
-    // add near other UI/game state fields
-
-    private IntegerProperty timeLeftProperty; // injected from MainMenuController
-
-
 
     // Reflection settings
     private static final double REFLECTION_FRACTION = 0.8;
     private static final double REFLECTION_TOP_OPACITY = 0.9;
     private static final int REFLECTION_TOP_OFFSET = -12;
-
-
 
     //FXML injected UI
     @FXML private GridPane gamePanel;
@@ -101,23 +61,28 @@ public class GuiController implements Initializable {
     @FXML private Button pauseButton ;
     @FXML private StackPane rootPane;
 
-
+    //Dependencies
     private InputEventListener eventListener;
     public GridPane holdPanel;
     private GameController gameController;
     private InputController inputController;
+    private SceneNavigator navigator;
     public GameRenderer renderer;
+
+    //Game State
     private IntegerProperty timeLeft;
     private Label linesLabel;
-
     private int totalClearedRows = 0 ;
     private int requiredLinesToClear = 10;
     private Runnable levelCompleteHandler;
 
-
     final BooleanProperty isPaused = new SimpleBooleanProperty();
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
 
+    GameOverPanel gameOverPanel = new GameOverPanel(
+            () -> navigateToMainMenu(),
+            () -> navigateToLeaderboard()
+    );
     // Color mapping constants
     static final Paint[] COLOR_MAP = {
             Color.TRANSPARENT,  // 0
@@ -130,53 +95,7 @@ public class GuiController implements Initializable {
             Color.BURLYWOOD,    // 7
             Color.WHITE         // default
     };
-    public boolean isPaused() {
-        return isPaused.get();
-    }
 
-    public boolean isGameOver() {
-        return isGameOver.get();
-    }
-
-    public void requestFocus() {
-        gamePanel.requestFocus();
-    }
-
-    // Add method to expose refreshBrick (delegates to renderer)
-    public void refreshBrick(ViewData data) {
-        if (!isPaused.get()) {
-            Platform.runLater(() -> {
-                int ghostDistance = gameController.getGhostDrop(data);
-                renderer.refreshBrick(data, ghostDistance);
-            });
-        }
-    }
-
-    // Add method to expose updateNextShapesPreview
-    public void updateNextShapesPreview(int[][][] nextShapes) {
-        renderer.updateNextShapesPreview(nextShapes);
-    }
-
-    // Add method to expose updateHeldBrick
-    public void updateHeldBrick(int[][] heldMatrix) {
-        renderer.updateHeldBrick(heldMatrix);
-    }
-    /**
-     * Delegates the background refresh to the GameRenderer.
-     * @param boardMatrix The current state of the board grid.
-     */
-    public void refreshGameBackground(int[][] boardMatrix) {
-
-        renderer.refreshGameBackground(boardMatrix);
-    }
-
-
-    // Make this public or package-private
-    void handleGameOver() {
-        if (gameController != null) {
-            gameController.handleGameOver();
-        }
-    }
    //INITIALIZATION
     /**
      * Called automatically by JavaFX after FXML loads.
@@ -190,13 +109,14 @@ public class GuiController implements Initializable {
             inputController = new InputController(this);
             renderer = new GameRenderer(gamePanel, brickPanel,
                     nextBricksPanel, holdPanel,COLOR_MAP);
+            navigator = new SceneNavigator("ui/mainMenu.fxml", "ui/leaderboard.fxml");
             gamePanel.setOnKeyPressed(inputController.createKeyEventHandler());
             initializeGamePanel();
             setupKeyboardInput();
             initializeGameOverPanel();
             setupVisualEffects();
         } catch (Exception e) {
-            handleInitializationError("Failed to initialize GuiController", e);
+            handleError("Failed to initialize GuiController", e);
         }
     }
 
@@ -219,12 +139,6 @@ public class GuiController implements Initializable {
         }
     }
 
-    public void initializeTimer(IntegerProperty timeLeftProperty, int seconds){
-        this.timeLeft = timeLeftProperty;
-        if (gameController != null) {
-            gameController.startGameTimer(timeLeftProperty);
-        }
-    }
 
     //keyboard input handling
     /**
@@ -252,7 +166,6 @@ public class GuiController implements Initializable {
      */
     private void setupVisualEffects() {
         Reflection reflection = createReflectionEffect();
-        // Apply reflection effect to appropriate components if needed
     }
     /**
      * Creates a reflection effect for UI components.
@@ -266,6 +179,53 @@ public class GuiController implements Initializable {
         reflection.setTopOffset(REFLECTION_TOP_OFFSET);
         return reflection;
     }
+    //Public Game State Methods
+    public boolean isPaused() {
+        return isPaused.get();
+    }
+
+    public boolean isGameOver() {
+        return isGameOver.get();
+    }
+
+    public void requestFocus() {
+        gamePanel.requestFocus();
+    }
+
+    public int getTimeLeft() {
+        return timeLeft != null ? timeLeft.get() : Integer.MAX_VALUE;
+    }
+
+    public Label getLevelLabel() {
+        return levelLabel;
+    }
+    // Rendering Methods
+    public void refreshBrick(ViewData data) {
+        if (!isPaused.get()) {
+            Platform.runLater(() -> {
+                int ghostDistance = gameController.getGhostDrop(data);
+                renderer.refreshBrick(data, ghostDistance);
+            });
+        }
+    }
+
+    // Add method to expose updateNextShapesPreview
+    public void updateNextShapesPreview(int[][][] nextShapes) {
+        renderer.updateNextShapesPreview(nextShapes);
+    }
+
+    // Add method to expose updateHeldBrick
+    public void updateHeldBrick(int[][] heldMatrix) {
+        renderer.updateHeldBrick(heldMatrix);
+    }
+    /**
+     * Delegates the background refresh to the GameRenderer.
+     * @param boardMatrix The current state of the board grid.
+     */
+    public void refreshGameBackground(int[][] boardMatrix) {
+        renderer.refreshGameBackground(boardMatrix);
+    }
+
     /**
      * Initializes the game view with the board matrix and initial brick.
      *
@@ -278,12 +238,110 @@ public class GuiController implements Initializable {
             renderer.initializeGhostMatrix(boardMatrix);
             renderer.initializeBrickPanel(brick);
             Platform.runLater(() -> gamePanel.requestFocus());
-
         } catch (Exception e) {
-            handleInitializationError("Failed to initialize game view", e);
+            handleError("Failed to initialize game view", e);
         }
     }
 
+    //Game Lifecycle Methods
+
+    public void initializeTimer(IntegerProperty timeLeftProperty, int seconds){
+        this.timeLeft = timeLeftProperty;
+        if (gameController != null) {
+            gameController.startGameTimer(timeLeftProperty);
+        }
+    }
+    /**
+     * Reset the timer to 120 seconds. Useful when starting a new level.
+     * @param seconds number of seconds to be reset to
+     */
+    public void resetTimer(int seconds) {
+        if (this.gameController != null) {
+            this.gameController.resetTimer(seconds);
+        }
+    }
+    /**
+     * Starts a new game.
+     */
+    public void newGame() {
+        resetGameState();
+        eventListener.createNewGame();
+        gamePanel.requestFocus();
+
+    }
+    /**
+     * Resets the game state to initial values.
+     */
+    private void resetGameState() {
+        gameOverPanel.setVisible(false);
+        gameOverPanel.setMouseTransparent(true);
+        isPaused.set(false);
+        isGameOver.set(false);
+    }
+    /**
+     * Handles game over state.
+     */
+    public void gameOver() {
+        gameController.stopGameLoop();
+        gameOverPanel.setVisible(true);
+        gameOverPanel.toFront();
+        gameOverPanel.setMouseTransparent(false);
+        isGameOver.set(true);
+    }
+
+    void handleGameOver() {
+        if (gameController != null) {
+            gameController.handleGameOver();
+        }
+    }
+    //Pause/Resume
+    /**
+     * Handles pause/resume game functionality.
+     *
+     * @param actionEvent The action event
+     */
+    @FXML
+    public void pauseGame(ActionEvent actionEvent) {
+        if (isPaused.get()) {
+            resumeGame();
+        } else {
+            pauseGameInternal();
+        }
+        gamePanel.requestFocus();
+    }
+    /**
+     * Resumes the game.
+     */
+    private void resumeGame() {
+        gameController.resumeGame();
+        pauseButton.setText("Pause");
+        isPaused.set(false);
+    }
+
+    /**
+     * Pauses the game.
+     */
+    private void pauseGameInternal() {
+        gameController.pauseGame();
+        pauseButton.setText("Resume");
+        isPaused.set(true);
+    }
+    /**
+     * Resumes the game after having been paused.
+     *FROM PRESSING P
+     */
+    public void resumeGameDirect() {
+        resumeGame();
+    }
+    /**
+     * Pauses the game immediately when called programmatically.
+     *FROM PRESSING P
+     */
+    public void pauseGameDirect() {
+        pauseGameInternal();
+    }
+
+    // ==================== LINES CLEARED & SCORING ====================
 
     /**
      * Sets the lines cleared label for tracking progress.
@@ -323,14 +381,19 @@ public class GuiController implements Initializable {
             levelCompleteHandler.run();
         }
     }
-
+    public void resetLinesCleared() {
+        totalClearedRows = 0;
+        if (linesLabel != null) {
+            linesLabel.setText("Lines Cleared: 0");
+        }
+    }
     /**
      * Called by GameController to subscribe to level-complete events.
      */
     public void setOnLevelComplete(Runnable handler) {
         this.levelCompleteHandler = handler;
     }
-
+// ==================== NOTIFICATIONS ====================
     /**
      * Shows a score notification for cleared lines.
      *
@@ -359,6 +422,71 @@ public class GuiController implements Initializable {
 
     }
     /**
+     * Shows combo popup (“Combo xN! (+score)”).
+     * @param combo number of lines cleared one after the other
+     * @param bonus points to be added to score
+     */
+    public void showComboNotification(int combo, int bonus) {
+        String message = "COMBO x" + combo + "  (+" + bonus + ")";
+        NotificationPanel panel = new NotificationPanel(message);
+
+        ObservableList<Node> children = groupNotification.getChildren();
+        children.add(panel);
+
+        // Reuse the same animation as level-up
+        panel.showScore(children);
+    }
+    // ==================== NAVIGATION (Delegated to SceneNavigator) ====================
+    /**
+     * Navigate to main menu from button click.
+     */
+    @FXML
+    public void mainMenu(ActionEvent actionEvent) {
+        try {
+            navigator.goToMainMenu((Node) actionEvent.getSource());
+        } catch (Exception e) {
+            handleError("Failed to load main menu", e);
+        }
+    }
+    /**
+     * Navigate to leaderboard from button click.
+     */
+    @FXML
+    public void leaderboard(ActionEvent actionEvent) {
+        try {
+            navigator.goToLeaderboard((Node) actionEvent.getSource());
+        } catch (Exception e) {
+            handleError("Failed to load leaderboard", e);
+        }
+    }
+
+    /**
+     * Navigate to main menu (used by GameOverPanel callbacks).
+     */
+    private void navigateToMainMenu() {
+        Platform.runLater(() -> {
+            try {
+                navigator.goToMainMenu(gamePanel);
+            } catch (Exception e) {
+                handleError("Failed to navigate to main menu", e);
+            }
+        });
+    }
+
+    /**
+     * Navigate to leaderboard (used by GameOverPanel callbacks).
+     */
+    private void navigateToLeaderboard() {
+        Platform.runLater(() -> {
+            try {
+                navigator.goToLeaderboard(gamePanel);
+            } catch (Exception e) {
+                handleError("Failed to navigate to leaderboard", e);
+            }
+        });
+    }
+// ==================== DEPENDENCY INJECTION & BINDING ====================
+    /**
      * Sets the event listener for game events.
      *
      * @param eventListener The event listener
@@ -384,246 +512,26 @@ public class GuiController implements Initializable {
             levelLabel.textProperty().bind(levelProperty.asString("%d"));
 
     }
-    public Label getLevelLabel() {
-        return levelLabel;
-    }
-
-    /**
-     * Handles game over state.
-     */
-    public void gameOver() {
-        gameController.stopGameLoop();
-        gameOverPanel.setVisible(true);
-        gameOverPanel.toFront();
-        gameOverPanel.setMouseTransparent(false);
-        isGameOver.set(true);
-    }
-    /**
-     * Starts a new game.
-     */
-    public void newGame() {
-        resetGameState();
-        eventListener.createNewGame();
-        gamePanel.requestFocus();
+    public void setGameController(GameController controller) {
+        this.gameController = controller;
 
     }
-    /**
-     * Resets the game state to initial values.
-     */
-    private void resetGameState() {
-        gameOverPanel.setVisible(false);
-        gameOverPanel.setMouseTransparent(true);
-        isPaused.set(false);
-        isGameOver.set(false);
-    }
 
-    // Button event handlers
-    /**
-     * Handles pause/resume game functionality.
-     *
-     * @param actionEvent The action event
-     */
-    @FXML
-    public void pauseGame(ActionEvent actionEvent) {
-        if (isPaused.get()) {
-            resumeGame();
-        } else {
-            pauseGameInternal();
-        }
-        gamePanel.requestFocus();
-    }
-    /**
-     * Resumes the game.
-     */
-    private void resumeGame() {
-        gameController.resumeGame();
-        pauseButton.setText("Pause");
-        isPaused.set(false);
-    }
-
-    /**
-     * Pauses the game.
-     */
-    private void pauseGameInternal() {
-        gameController.pauseGame();
-        pauseButton.setText("Resume");
-        isPaused.set(true);
-    }
-    /**
-     * Navigates back to the main menu.
-     *
-     * @param actionEvent The action event
-     * @throws Exception If loading the main menu fails
-     */
-    @FXML
-    public void mainMenu(ActionEvent actionEvent) throws Exception {
-        try {
-            loadMainMenu(actionEvent);
-        } catch (Exception e) {
-            handleInitializationError("Failed to load main menu", e);
-            throw e;
-        }
-    }
-    /**
-     * Navigates back to the main menu (without parameters for GameOverPanel).
-     */
-    public void mainmenuDirect() throws Exception {
-        try {
-            // Create a dummy ActionEvent or use alternative navigation
-            Platform.runLater(() -> {
-                try {
-                    // Get current stage from any UI component
-                    Stage currentStage = (Stage) gamePanel.getScene().getWindow();
-                    loadMainMenuDirectly(currentStage);
-                } catch (Exception e) {
-                    handleInitializationError("Failed to load main menu", e);
-                }
-            });
-        } catch (Exception e) {
-            handleInitializationError("Failed to load main menu", e);
-            throw e;
-        }
-    }
-    /**
-     * Loads the main menu directly without requiring an ActionEvent.
-     */
-    private void loadMainMenuDirectly(Stage stage) throws Exception {
-        URL location = getClass().getClassLoader().getResource(MAIN_MENU_FXML);
-        if (location == null) {
-            throw new IOException("Cannot find main menu FXML: " + MAIN_MENU_FXML);
-        }
-
-        FXMLLoader fxmlLoader = new FXMLLoader(location);
-        Parent root = fxmlLoader.load();
-        Scene scene = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
-
-        stage.setScene(scene);
-        stage.show();
-    }
-
-
-    public  void leaderboard(ActionEvent event) throws Exception{
-       try{
-           FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/leaderboard.fxml"));
-           Parent root = loader.load();
-           Scene scene = new Scene(root);
-
-           Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-           stage.setScene(scene);
-           stage.show();
-       } catch (Exception e) {
-           handleInitializationError("Failed to load leaderboard", e);
-           throw e;
-       }
-    }
-
-    /**
-     * Navigates to the leaderboard screen (without parameters for GameOverPanel).
-     */
-    public void leaderBoardDirect() throws Exception {
-        try {
-            Platform.runLater(() -> {
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/leaderboard.fxml"));
-                    Parent root = loader.load();
-                    Scene scene = new Scene(root);
-
-                    Stage stage = (Stage) gamePanel.getScene().getWindow();
-                    stage.setScene(scene);
-                    stage.show();
-                } catch (Exception e) {
-                    handleInitializationError("Failed to load leaderboard", e);
-                }
-            });
-        } catch (Exception e) {
-            handleInitializationError("Failed to load leaderboard", e);
-            throw e;
-        }
-    }
-
-
+    // ==================== ERROR HANDLING ====================
     /**
      * Handles initialization errors gracefully.
      *
      * @param message The error message
      * @param exception The exception that occurred
      */
-    private void handleInitializationError(String message, Exception exception) {
+    private void handleError(String message, Exception exception) {
         System.err.println("ERROR: " + message);
         if (exception != null) {
             exception.printStackTrace();
         }
-        // Could add user notification here in a real application
-    }
-    /**
-     * Loads and displays the main menu.
-     *
-     * @param actionEvent The action event
-     * @throws Exception If loading fails
-     */
-    private void loadMainMenu(ActionEvent actionEvent) throws Exception {
-        URL location = getClass().getClassLoader().getResource(MAIN_MENU_FXML);
-        FXMLLoader fxmlLoader = new FXMLLoader(location);
-        Parent root = fxmlLoader.load();
-
-        Stage stage = getCurrentStage(actionEvent);
-        Scene scene = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
-
-        stage.setScene(scene);
-        stage.show();
-    }
-    /**
-     * Gets the current stage from the action event.
-     *
-     * @param actionEvent The action event
-     * @return The current stage
-     */
-    private Stage getCurrentStage(ActionEvent actionEvent) {
-        return (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
     }
 
-    public void setGameController(GameController controller) {
-        this.gameController = controller;
-
-    }
-
-
-    public int getTimeLeft() {
-        return timeLeft != null ? timeLeft.get() : Integer.MAX_VALUE;
-    }
-    /**
-     * Reset the timer to 120 seconds. Useful when starting a new level.
-     * @param seconds number of seconds to be reset to
-     */
-    public void resetTimer(int seconds) {
-        if (this.gameController != null) {
-            this.gameController.resetTimer(seconds);
-        }
-    }
-
-
-    public void resetLinesCleared() {
-        totalClearedRows = 0;
-        if (linesLabel != null) {
-            linesLabel.setText("Lines Cleared: 0");
-        }
-    }
-    /**
-     * Shows combo popup (“Combo xN! (+score)”).
-     * @param combo number of lines cleared one after the other
-     * @param bonus points to be added to score
-     */
-    public void showComboNotification(int combo, int bonus) {
-        String message = "COMBO x" + combo + "  (+" + bonus + ")";
-        NotificationPanel panel = new NotificationPanel(message);
-
-        ObservableList<Node> children = groupNotification.getChildren();
-        children.add(panel);
-
-        // Reuse the same animation as level-up
-        panel.showScore(children);
-    }
-
+    // ==================== FUNCTIONAL INTERFACE ====================
     @FunctionalInterface
     interface CellAction {
         void apply(int row, int col, int value);

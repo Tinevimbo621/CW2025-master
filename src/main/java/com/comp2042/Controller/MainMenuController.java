@@ -2,8 +2,6 @@ package com.comp2042.Controller;
 
 
 import com.comp2042.audio.SoundManager;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -24,18 +22,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
-
-
-
 /**
  * Controller for the main menu of the game.
  * Handles game mode selection and navigation to different game screens.
+ * All scene navigation is delegated to SceneNavigator.
  */
-
 public class MainMenuController {
     //FXML UI Components
     @FXML private ImageView backgroundImage;
@@ -46,32 +40,64 @@ public class MainMenuController {
     @FXML private TextField playerNameField;
     @FXML private Button soundButton;
 
-    private boolean soundEnabled = true;
-     //Constants
+    // Scene Navigator
+    private SceneNavigator navigator;
 
+    private boolean soundEnabled = true;
+
+     //Constants
     private static final String DEFAULT_PLAYER_NAME = "Player";
     private static final String GAME_LAYOUT_PATH = "ui/gameLayout.fxml";
-    private static final String LEADERBOARD_PATH = "/ui/leaderboard.fxml";
     private static final String BACKGROUND_IMAGE_PATH = "/ui/Main_menu.jpg";
     private static final double SCENE_WIDTH = 800.0;
     private static final double SCENE_HEIGHT = 800.0;
     private static final int ULTRA_TIME_LIMIT_SECONDS = 120;
-
     private static final Insets LABEL_MARGIN = new Insets(10);
-
-    // UI Styling Constants
-    private static final String TIMER_LABEL_STYLE = "-fx-font-size: 40px; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\";";
-    private static final String LINES_LABEL_STYLE = "-fx-font-size: 25px; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-family: \"Let's go Digital\";";
-
 
     //GAME MODES
     /**
      * Enum representing different game modes with their configurations
      */
     private enum GameMode {
-        MARATHON("Marathon", "Endless play.\n\nGoal: Survive as long as possible.\nNo timer.\nLines increase your score.", false, false),
-        SPRINT("Sprint", "Sprint Mode\n\nGoal: Clear lines equal to the level you are in.\nTimer:1 20 seconds.\nClearing lines extends progress.", true  , true),
-        ULTRA("Ultra",  "Ultra Mode\n\nScore as many points as possible within the time limit.\nThis is a fast-scoring challenge.\nTimer: 120 seconds.", true, false);
+        MARATHON("Marathon",
+                "Endless play.\n\n" +
+                        "Goal: Survive as long as possible.\n" +
+                        "No timer.\n" +
+                        "Lines increase your score.\n\n" +
+                        "CONTROLS:\n" +
+                        "← → : Move left/right\n" +
+                        "↓ : Soft drop\n" +
+                        "↑ : Rotate\n" +
+                        "Q : Hard drop (instant)\n" +
+                        "C : Hold piece\n" +
+                        "P : Pause",
+                false, false),
+        SPRINT("Sprint",
+                "Sprint Mode\n\n" +
+                        "Goal: Clear lines equal to the level you are in.\n" +
+                        "Timer: 120 seconds.\n" +
+                        "Clearing lines extends progress.\n\n" +
+                        "CONTROLS:\n" +
+                        "← → : Move left/right\n" +
+                        "↓ : Soft drop\n" +
+                        "↑ : Rotate\n" +
+                        "Q : Hard drop (instant)\n" +
+                        "C : Hold piece\n" +
+                        "P : Pause",
+                true, true),
+        ULTRA("Ultra",
+                "Ultra Mode\n\n" +
+                        "Score as many points as possible within the time limit.\n" +
+                        "This is a fast-scoring challenge.\n" +
+                        "Timer: 120 seconds.\n\n" +
+                        "CONTROLS:\n" +
+                        "← → : Move left/right\n" +
+                        "↓ : Soft drop\n" +
+                        "↑ : Rotate\n" +
+                        "Q : Hard drop (instant)\n" +
+                        "C : Hold piece\n" +
+                        "P : Pause",
+                true, false);
 
         private final String name;
         private final String instructions;
@@ -97,6 +123,7 @@ public class MainMenuController {
     @FXML
     public void initialize() {
         try {
+            initializeNavigator();
             setupBackgroundImage();
             setupButtonHandlers();
             SoundManager.initBackground("/sounds/background.mp3");
@@ -104,6 +131,15 @@ public class MainMenuController {
             soundButton.setText("Sound: ON");
         } catch (Exception e) {
             logError("Failed to initialize MainMenuController", e);
+        }
+    }
+    /**
+     * Initializes the SceneNavigator.
+     * This must be called before any navigation operations.
+     */
+    private void initializeNavigator() {
+        if (navigator == null) {
+            navigator = new SceneNavigator("ui/mainMenu.fxml", "ui/leaderboard.fxml");
         }
     }
     //SOUND CONTROL
@@ -152,18 +188,30 @@ public class MainMenuController {
      */
     private void startGame(GameMode mode) {
         try {
+            if (navigator == null) {
+                initializeNavigator();
+            }
             showModeInstructions(mode);
 
-            FXMLLoader loader = loadGameLayout();
-            Scene gameScene = new Scene(loader.load(), SCENE_WIDTH, SCENE_HEIGHT);
+            // Using SceneNavigator to load game scene with controller
+            SceneNavigator.GameSceneData gameData = navigator.loadGameSceneWithController(
+                    GAME_LAYOUT_PATH,
+                    SCENE_WIDTH,
+                    SCENE_HEIGHT
+            );
+            GuiController guiController = gameData.getController();
+            Scene gameScene = gameData.getScene();
 
-            GuiController guiController = loader.getController();
             String playerName = getValidatedPlayerName();
             GameController gameController = new GameController(guiController, playerName, mode.getName());
 
-            applyModeSpecificFeatures(guiController, gameScene, mode,gameController);
-            switchToGameScene(gameScene, mode);
+            applyModeSpecificFeatures(guiController, gameScene, mode, gameController);
 
+            // Switch to game scene
+            Stage stage = getCurrentStage();
+            stage.setScene(gameScene);
+            stage.setTitle("TetrisJFX - " + mode.getName() + " Mode");
+            stage.show();
         } catch (Exception e) {
             logError("Failed to start game in " + mode.getName() + " mode", e);
         }
@@ -192,19 +240,6 @@ public class MainMenuController {
         return playerName.isEmpty() ? DEFAULT_PLAYER_NAME : playerName;
     }
 
-    /**
-     * Loads the game layout FXML file.
-     *
-     * @return FXMLLoader instance with the game layout
-     * @throws IOException if the layout file cannot be loaded
-     */
-    private FXMLLoader loadGameLayout() throws IOException {
-        URL gameLayout = getClass().getClassLoader().getResource(GAME_LAYOUT_PATH);
-        if (gameLayout == null) {
-            throw new IOException("Game layout file not found: " + GAME_LAYOUT_PATH);
-        }
-        return new FXMLLoader(gameLayout);
-    }
     //GAME MODE FEATURES
     /**
      * Applies mode-specific features to the game scene.
@@ -225,19 +260,16 @@ public class MainMenuController {
         if (mode.hasLineCounter()) {
             setupLineCounterFeature(guiController, root);
         }
-
-
     }
     //Time feature
     /**
      * Sets up the timer feature for timed game modes.
-     *
+     * @param gameController The game controller
      * @param guiController The GUI controller
      * @param root The root StackPane of the scene
      */
     private void setupTimerFeature(GuiController guiController, StackPane root,GameController gameController) {
         IntegerProperty timeLeft = new SimpleIntegerProperty(ULTRA_TIME_LIMIT_SECONDS);
-
 
         Label timerLabel = new Label();
         timerLabel.textProperty().bind(Bindings.concat("Time: ", timeLeft.asString()));
@@ -248,8 +280,6 @@ public class MainMenuController {
         root.getChildren().add(timerLabel);
 
         guiController.initializeTimer(timeLeft, ULTRA_TIME_LIMIT_SECONDS);
-
-
         guiController.getLevelLabel().setVisible(false);
     }
     // LINE COUNTER FEATURE
@@ -269,19 +299,7 @@ public class MainMenuController {
 
         guiController.setLinesLabel(linesLabel);
     }
-    //SCENE SWITCHING
-    /**
-     * Switches the current stage to the game scene.
-     *
-     * @param gameScene The game scene to switch to
-     * @param mode The game mode for the title
-     */
-    private void switchToGameScene(Scene gameScene, GameMode mode) {
-        Stage stage = getCurrentStage();
-        stage.setScene(gameScene);
-        stage.setTitle("TetrisJFX - " + mode.getName() + " Mode");
-        stage.show();
-    }
+  //Navigation
     /**
      * Gets the current stage from any of the button scenes.
      *
@@ -302,22 +320,24 @@ public class MainMenuController {
             logError("Failed to exit game",e);
         }
     }
+
     /**
-     * Opens the leaderboard screen.
+     * Opens the leaderboard screen using SceneNavigator.
      *
      * @param event The action event that triggered this method
-     * @throws IOException if the leaderboard FXML cannot be loaded
      */
-    public void openLeaderboard(ActionEvent event) throws IOException {
+    @FXML
+    public void openLeaderboard(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(LEADERBOARD_PATH));
-            Parent root = loader.load();
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
+
+            if (navigator == null) {
+                initializeNavigator();
+            }
+
+            navigator.goToLeaderboard((Node) event.getSource());
         } catch (Exception e) {
             logError("Failed to open leaderboard", e);
-            throw e;
+            e.printStackTrace();
         }
     }
     //ERROR HANDLING

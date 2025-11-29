@@ -1,11 +1,5 @@
 package com.comp2042.Controller;
 
-// GhostPieceManager.java
-
-// You will need to add the correct imports for Board, ViewData, etc.
-// import com.example.model.Board;
-// import com.example.model.ViewData;
-
 import com.comp2042.model.Board;
 import com.comp2042.model.ViewData;
 
@@ -40,7 +34,7 @@ public class GhostPieceManager {
         return findMaximumDropDistance(shape, startX, startY, grid);
     }
 
-    // ... (rest of the helper methods: findMaximumDropDistance, canPlaceShape, etc.) ...
+
     private int findMaximumDropDistance(int[][] shape, int x, int y, int[][] grid) {
         int maxDrop = 0;
         while (canPlaceShape(shape, x, y + maxDrop + 1, grid)) {
@@ -66,12 +60,10 @@ public class GhostPieceManager {
         int gridY = y + row;
         int gridX = x + col;
 
-        // Check boundaries
         if (isOutOfBounds(gridY, gridX, grid)) {
             return false;
         }
 
-        // Check collision with existing blocks
         return grid[gridY][gridX] == 0;
     }
 

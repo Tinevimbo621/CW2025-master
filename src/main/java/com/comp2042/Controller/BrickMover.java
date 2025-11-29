@@ -59,7 +59,6 @@ public class BrickMover {
         board.holdBrick();
     }
 
-    // You could also move canMoveDown() logic here from GameController
     public boolean canMoveDown() {
         return board.moveBrickDown();
     }

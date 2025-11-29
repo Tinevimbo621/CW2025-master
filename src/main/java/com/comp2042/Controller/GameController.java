@@ -7,14 +7,12 @@ import com.comp2042.model.Board;
 import com.comp2042.model.DownData;
 import com.comp2042.model.SimpleBoard;
 import com.comp2042.model.ViewData;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
-import javafx.util.Duration;
 
 /** Controller for managing game logic and coordinating between game board and UI
  * Handles game events , score management and game state transactions
+ * * Timer management is delegated to GameTimerManager.
  */
 
 public class GameController implements InputEventListener {
@@ -28,9 +26,7 @@ public class GameController implements InputEventListener {
     private static final int HARD_DROP_SCORE_MULTIPLIER = 2;
     private static final int COMBO_SCORE_BONUS = 25;
 
-
-
-    /** Game mode identifier for Sprint mode */
+    // Game mode identifiers
     private static final String SPRINT_MODE = "Sprint";
     private static final String ULTRA_MODE = "Ultra";
 
@@ -41,8 +37,7 @@ public class GameController implements InputEventListener {
     private final LeaderboardManager leaderboardManager ;
     private final GuiController viewGuiController;
     private final GhostPieceManager ghostPieceManager;
-    private Timeline gameTimeline;
-    private Timeline levelTimer;
+    private final GameTimerManager timerManager;
     private IntegerProperty levelTimerProperty;
 
     //Game state variables
@@ -54,6 +49,7 @@ public class GameController implements InputEventListener {
     private int linesClearedThisLevel = 0;
     private boolean levelWon = false;
 
+    // Drop delay configuration for levels
     private static final int[] DROP_DELAYS_MS = {
             1000, 900, 800, 700, 600, 500, 400, 300, 200, 100
     };
@@ -75,6 +71,7 @@ public class GameController implements InputEventListener {
         this.brickMover = new BrickMover(this.board);
         this.leaderboardManager = new LeaderboardManager();
         this.ghostPieceManager = new GhostPieceManager(board);
+        this.timerManager = new GameTimerManager();
 
 
         this.viewGuiController.setGameController(this);
@@ -91,92 +88,108 @@ public class GameController implements InputEventListener {
 
 
     }
-// Add new public method called by GuiController
+    // ==================== TIMER MANAGEMENT
     /**
      * Called by GuiController to initialize and start the game timer.
      * @param timeLeftProperty The property to decrement every second.
      */
     public void startGameTimer(IntegerProperty timeLeftProperty) {
-        this.levelTimerProperty = timeLeftProperty;
-        startLevelTimer(timeLeftProperty);
+        timerManager.startLevelTimer(timeLeftProperty, this::handleTimeExpired);
     }
 
-    // Private worker method for the actual timer logic
-    private void startLevelTimer(IntegerProperty timeLeft) {
-        if (levelTimer != null) {
-            levelTimer.stop();
+    /**
+     * Handles the event when the level timer expires.
+     */
+    private void handleTimeExpired() {
+        if (isSprintMode() || ULTRA_MODE.equalsIgnoreCase(gameMode)) {
+            handleGameOver();
         }
-
-        levelTimer = new Timeline(
-                new KeyFrame(
-                        Duration.seconds(1),
-                        event -> {
-                            if (timeLeft.get() > 0) {
-                                timeLeft.set(timeLeft.get() - 1);
-                            } else {
-                                levelTimer.stop();
-                                // Game over logic for timed modes
-                                if (isSprintMode() || ULTRA_MODE.equalsIgnoreCase(gameMode)) {
-                                    handleGameOver();
-                                }
-                            }
-                        }
-                )
-        );
-        levelTimer.setCycleCount(Timeline.INDEFINITE);
-        levelTimer.play();
     }
-
+    /**
+     * Reset the timer to a specific number of seconds.
+     * @param seconds number of seconds to be reset to
+     */
+    public void resetTimer(int seconds) {
+        timerManager.resetLevelTimer(seconds);
+    }
+    /**
+     * Starts the game loop with automatic brick dropping.
+     */
     public void startGameLoop() {
         int delay = getDropDelayForLevel(board.getScore().getLevel());
-
-        if (gameTimeline != null) {
-            gameTimeline.stop();
-        }
-
-        gameTimeline = new Timeline(new KeyFrame(
-                Duration.millis(delay),
-                e -> executeAutoDropLogic()
-        ));
-        gameTimeline.setCycleCount(Timeline.INDEFINITE);
-        gameTimeline.play();
-
-
+        timerManager.startGameLoop(delay, this::executeAutoDropLogic);
         Platform.runLater(this::executeAutoDropLogic);
     }
-
+    /**
+     * Stops the game loop and all timers.
+     */
     public void stopGameLoop() {
-        if (gameTimeline != null) {
-            gameTimeline.stop();
-        }
-        if (levelTimer != null) {
-            levelTimer.stop();
-        }
+        timerManager.stopAll();
+
     }
 
+    /**
+     * Pauses the game and all timers.
+     */
     public void pauseGame() {
-        if (gameTimeline != null) {
-            gameTimeline.pause();
-        }
-        if (levelTimer != null) {
-            levelTimer.pause();
-        }
+        timerManager.pauseAll();
     }
 
+    /**
+     * Resumes the game and all timers.
+     */
     public void resumeGame() {
-        if (gameTimeline != null) {
-            gameTimeline.play();
-        }
-        if (levelTimer != null) {
-            levelTimer.play();
-        }
+        timerManager.resumeAll();
     }
 
 
+    /**
+     * Updates game loop speed based on current level.
+     *
+     * @param newLevel The new level
+     */
+    private void handleAdaptiveSpeed(int newLevel) {
+        int newDelayMs = getDropDelayForLevel(newLevel);
+        timerManager.updateGameLoopSpeed(newDelayMs, this::executeAutoDropLogic);
+    }
+    /**
+     * Gets the drop delay for a specific level.
+     *
+     * @param level The level
+     * @return Drop delay in milliseconds
+     */
+    private int getDropDelayForLevel(int level) {
+        int index = Math.min(level, MAX_LEVEL) - 1;
+        if (index < 0) return DROP_DELAYS_MS[0];
+        return DROP_DELAYS_MS[index];
+    }
+
+    /**
+     * Executes the automatic drop logic for each game loop tick.
+     */
+    private void executeAutoDropLogic() {
+        onDownEvent(new MoveEvent(EventType.DOWN, EventSource.THREAD));
+        viewGuiController.refreshBrick(board.getViewData());
+    }
+
+    // ==================== GAME MODE MANAGEMENT ====================
+    /**
+     * Checks if the current game mode is Sprint.
+     *
+     * @return true if Sprint mode
+     */
     private boolean isSprintMode() {
-        return "Sprint".equalsIgnoreCase(gameMode);
+        return SPRINT_MODE.equalsIgnoreCase(gameMode);
     }
 
+    /**
+     * Gets the number of lines required to complete the current level.
+     *@return number of lines required for level completion
+     */
+    private int getRequiredLines() {
+        return isSprintMode() ? currentLevel : Integer.MAX_VALUE;
+    }
+    // ==================== GAME INITIALIZATION ====================
     /**
      * Creates and initializes the game board.
      *
@@ -225,25 +238,22 @@ public class GameController implements InputEventListener {
         viewGuiController.bindScore(board.getScore().scoreProperty());
         viewGuiController.bindLevel(board.getScore().levelProperty());
     }
-// Update existing resetTimer to restart the timeline
     /**
-     * Reset the timer to a specific number of seconds.
-     * @param seconds number of seconds to be reset to
+     * Sanitizes and validates the player name.
+     *
+     * @param name The raw player name
+     * @return Sanitized player name
      */
-    public void resetTimer(int seconds) {
-        if (this.levelTimerProperty != null) {
-            this.levelTimerProperty.set(seconds);
-            if (levelTimer != null) {
-                levelTimer.stop();
-                startLevelTimer(this.levelTimerProperty);
-            }
+    private String sanitizePlayerName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return DEFAULT_PLAYER_NAME;
         }
+        return name.trim();
     }
+//LEVEL MANAGEMENT
     /**
      * Starts or restarts the current level with appropriate setup.
-     *
-     * <p>In Sprint mode, this resets the level timer and line counters.
-     * In other modes, this method has no effect.</p>
+     * In Sprint mode, this resets the level timer and line counters.
      */
     public  void startLevel() {
         if (!isSprintMode()) return;
@@ -259,13 +269,6 @@ public class GameController implements InputEventListener {
     }
 
     /**
-     * Gets the number of lines required to complete the current level.
-     *@return number of lines required for level completion
-     */
-    private int getRequiredLines() {
-        return isSprintMode() ? currentLevel : Integer.MAX_VALUE;
-    }
-    /**
      * Advances to the next level in Sprint mode.
      *
      * <p>advanceLevel() shows a level up notification, increments the level counter,
@@ -279,17 +282,30 @@ public class GameController implements InputEventListener {
 
     }
     /**
-     * Sanitizes and validates the player name.
-     *
-     * @param name The raw player name
-     * @return Sanitized player name
+     * Handles level completion logic.
      */
-    private String sanitizePlayerName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            return DEFAULT_PLAYER_NAME;
-        }
-        return name.trim();
+    private void handleLevelComplete() {
+        viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
+        board.getScore().levelProperty().set(board.getScore().getLevel() + 1);
+        viewGuiController.showLevelUpNotification(board.getScore().getLevel());
+        viewGuiController.resetLinesCleared();
     }
+    /**
+     * Called by GuiController whenever rows are cleared on the board.
+     *
+     * @param linesRemoved Number of lines cleared in that event
+     */
+    public void onLinesCleared(int linesRemoved) {
+        if (levelWon) return;
+        this.linesClearedThisLevel += linesRemoved;
+        int timeLeft = timerManager.getTimeLeft();
+
+        if (linesClearedThisLevel >= getRequiredLines() && timeLeft > 0) {
+            levelWon = true;
+            advanceLevel();
+        }
+    }
+    //MOVEMENT HANDLERS
     /**
      * Handles downward movement events and associated game logic.
      *
@@ -346,7 +362,6 @@ public class GameController implements InputEventListener {
 
     /**
      * Handles blocked downward movement when the brick cannot move further.
-     *
      * <p>This method processes brick placement, row clearing, score updates,
      * new brick spawning, and game over conditions.</p>
      *
@@ -364,7 +379,6 @@ public class GameController implements InputEventListener {
 
     /**
      * Handles combo count update and displays combo notification.
-     * This logic is used after soft drops and gravity drops.
      * @param clearRow The clear row data
      */
     private void handleComboAndNotifications(ClearRow clearRow) {
@@ -373,14 +387,9 @@ public class GameController implements InputEventListener {
             int comboBonus = this.comboCount * COMBO_SCORE_BONUS; // Use your constant
             board.getScore().add(comboBonus);
 
-            // Update lines cleared in the view (for Sprint mode)
             viewGuiController.updateLinesCleared(clearRow.getLinesRemoved());
-
-            // Show the combo notification!
             viewGuiController.showComboNotification(comboCount, comboBonus);
-
         } else {
-            // Break the combo if lines were not cleared
             this.comboCount = 0;
         }
     }
@@ -394,11 +403,9 @@ public class GameController implements InputEventListener {
         ClearRow clearRow = board.clearRows();
         if (hasClearedLines(clearRow)) {
             board.getScore().add(clearRow.getScoreBonus());
-
         }
         return clearRow;
     }
-
     /**
      * Checks if any lines were cleared.
      *
@@ -423,32 +430,6 @@ public class GameController implements InputEventListener {
     }
 
     /**
-     * Handles game over state.
-     */
-   public void handleGameOver() {
-
-       if (!scoreSaved) {
-           saveScoreToLeaderboard();
-           scoreSaved = true;
-       }
-        viewGuiController.gameOver();
-    }
-
-    /**
-     * Updates the next brick preview in the UI.
-     */
-    private void updateNextBrickPreview() {
-        viewGuiController.updateNextShapesPreview(board.getViewData().getNextBricksData());
-    }
-
-    /**
-     * Refreshes the game display.
-     */
-    private void refreshGameDisplay() {
-        viewGuiController.refreshGameBackground(board.getBoardMatrix());
-    }
-
-    /**
      * Creates emergency DownData for error recovery.
      *
      * @return Basic DownData with current view
@@ -466,13 +447,13 @@ public class GameController implements InputEventListener {
     @Override
     public ViewData onLeftEvent(MoveEvent event) {
         try {
-           brickMover.moveLeft();
+            brickMover.moveLeft();
             return board.getViewData();
 
-    } catch (Exception e) {
-        handleGameError("Error during left movement", e);
-        return board.getViewData();
-    }
+        } catch (Exception e) {
+            handleGameError("Error during left movement", e);
+            return board.getViewData();
+        }
     }
     /**
      * Handles right movement events.
@@ -509,149 +490,11 @@ public class GameController implements InputEventListener {
         }
     }
     /**
-     * Creates a new game instance.
-     */
-    @Override
-    public void createNewGame() {
-        try {
-            board.newGame();
-            this.currentLevel = 1;
-            if (isSprintMode()) {
-                startLevel();
-            }
-
-            if (ULTRA_MODE.equalsIgnoreCase(gameMode)) {
-                viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
-
-            }
-            viewGuiController.updateNextShapesPreview(
-                    board.getViewData().getNextBricksData());
-            viewGuiController.updateHeldBrick(
-                    board.getViewData().getHeldBrickData()
-            );
-
-            viewGuiController.refreshGameBackground(board.getBoardMatrix());
-        } catch (Exception e) {
-            handleGameError("Error creating new game", e);
-        }
-    }
-    /**
-     * Saves the current score to the leaderboard.
-     */
-    public void saveScoreToLeaderboard() {
-
-      IntegerProperty finalScore =board.getScore().scoreProperty();
-        try {
-            ScoreEntry entry = createScoreEntry();
-            leaderboardManager.saveEntry(entry);
-        } catch (Exception e) {
-            handleLeaderboardError("Failed to save score to leaderboard", e);
-        }
-    }
-
-    /**
-     * Creates a ScoreEntry from the current game state.
+     * Handles hold events.
      *
-     * @return ScoreEntry with player information
+     * @param event The move event
+     * @return Updated ViewData
      */
-    private ScoreEntry createScoreEntry() {
-        IntegerProperty finalScore = board.getScore().scoreProperty();
-        return new ScoreEntry(playerName, finalScore, gameMode);
-    }
-
-    /**
-     * Gets the ghost drop distance for the current brick.
-     *
-     * @param brick The current brick data
-     * @return Distance the ghost piece should drop
-     */
-    public int getGhostDrop(ViewData brick) {
-        try {
-            return ghostPieceManager.getGhostDropDistance(brick);
-        } catch (Exception e) {
-            handleGameError("Error calculating ghost drop distance", e);
-            return 0;
-        }
-    }
-    /**
-     * Called by GuiController whenever rows are cleared on the board.
-     * This method receives the number of newly removed lines and checks the
-     * level completion rule: clearedLines >= currentLevel * 10 and timeLeft > 0.
-     *
-     * Note: GuiController must call this method after updating its own label.
-     *
-     * @param linesRemoved Number of lines cleared in that event
-     */
-    public void onLinesCleared(int linesRemoved) {
-        if (levelWon) return;
-
-
-        this.linesClearedThisLevel += linesRemoved;
-
-        int timeLeft = Integer.MAX_VALUE;
-        try {
-            timeLeft = viewGuiController.getTimeLeft();
-        } catch (Exception ignored) { }
-
-        if (linesClearedThisLevel >= getRequiredLines() && timeLeft > 0) {
-            levelWon = true;
-            advanceLevel();
-        }
-    }
-    /**
-     * Logs an error with a given context prefix.
-     *
-     * @param context   the source or category of the error (for example "LEADERBOARD", "INITIALIZATION")
-     * @param message   the error message
-     * @param exception the exception that occurred, may be null
-     */
-    private void handleError(String context, String message, Exception exception) {
-        System.err.println(context + " ERROR: " + message);
-        if (exception != null) {
-            exception.printStackTrace();
-        }
-    }
-
-
-    /**
-     * Handles game-related errors with logging and recovery.
-     *
-     * @param message The error message
-     * @param exception The exception that occurred
-     */
-    private void handleGameError(String message, Exception exception) {
-        handleError("GAME ERROR:", message, exception);
-
-    }
-
-    /**
-     * Handles leaderboard-related errors.
-     *
-     * @param message The error message
-     * @param exception The exception that occurred
-     */
-    private void handleLeaderboardError(String message, Exception exception) {
-        handleError("LEADERBOARD", message, exception);
-
-    }
-    /**
-     * Handles initialization errors.
-     *
-     * @param message The error message
-     * @param exception The exception that occurred
-     */
-    private void handleInitializationError(String message, Exception exception) {
-        handleError("INITIALIZATION", message, exception);
-
-    }
-
-    private void handleLevelComplete() {
-        viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
-        board.getScore().levelProperty().set(board.getScore().getLevel() + 1);
-        viewGuiController.showLevelUpNotification(board.getScore().getLevel());
-        viewGuiController.resetLinesCleared();
-    }
-
     @Override
     public ViewData onHoldEvent(MoveEvent event) {
         try {
@@ -663,39 +506,6 @@ public class GameController implements InputEventListener {
             handleGameError("Error during brick hold", e);
             return board.getViewData();
         }
-    }
-    // GameController.java (New Private Methods)
-    private int getDropDelayForLevel(int level) {
-        int index = Math.min(level, MAX_LEVEL) - 1;
-        if (index < 0) return DROP_DELAYS_MS[0];
-        return DROP_DELAYS_MS[index];
-    }
-
-    private void executeAutoDropLogic() {
-        // This calls your existing onDownEvent(MoveEvent)
-        onDownEvent(new MoveEvent(EventType.DOWN, EventSource.THREAD));
-        viewGuiController.refreshBrick(board.getViewData());
-    }
-
-    private Timeline createGameTimeline(int delayMs) {
-        Timeline timer = new Timeline(
-                new KeyFrame(
-                        Duration.millis(delayMs),
-                        event -> executeAutoDropLogic()
-                )
-        );
-        timer.setCycleCount(Timeline.INDEFINITE);
-        return timer;
-    }
-
-    private void handleAdaptiveSpeed(int newLevel) {
-        if (gameTimeline != null) {
-            gameTimeline.stop();
-        }
-
-        int newDelayMs = getDropDelayForLevel(newLevel);
-        gameTimeline = createGameTimeline(newDelayMs);
-        gameTimeline.play();
     }
 
     /**
@@ -717,32 +527,159 @@ public class GameController implements InputEventListener {
         board.mergeBrickToBackground();
 
         ClearRow clearRow = processRowClearing();
-
-        // Reuses the logic for combo and score updates
         handleComboAndNotifications(clearRow);
-
-        // Handles new piece spawn or game over
         handleBrickPlacementComplete(clearRow);
     }
-
-    // GameController.java (Updated onHardDropEvent)
+    /**
+     * Handles hard drop events.
+     *
+     * @param event The move event
+     * @return Updated ViewData
+     */
     @Override
     public ViewData onHardDropEvent(MoveEvent event) {
         try {
             executeHardDropMovementAndScore(board.getViewData());
-
             processHardDropPlacementCompletion();
-
 
             viewGuiController.refreshGameBackground(board.getBoardMatrix());
             viewGuiController.updateNextShapesPreview(board.getViewData().getNextBricksData());
 
             return board.getViewData();
-
         }catch (Exception e) {
             handleGameError("Error during hard drop", e);
             return board.getViewData();
         }
     }
+    //Game lifeCycle
+    /**
+     * Creates a new game instance.
+     */
+    @Override
+    public void createNewGame() {
+        try {
+            board.newGame();
+            this.currentLevel = 1;
+            if (isSprintMode()) {
+                startLevel();
+            }
 
+            if (ULTRA_MODE.equalsIgnoreCase(gameMode)) {
+                viewGuiController.resetTimer(LEVEL_TIME_LIMIT_SECONDS);
+
+            }
+            viewGuiController.updateNextShapesPreview(board.getViewData().getNextBricksData());
+            viewGuiController.updateHeldBrick(board.getViewData().getHeldBrickData());
+            viewGuiController.refreshGameBackground(board.getBoardMatrix());
+        } catch (Exception e) {
+            handleGameError("Error creating new game", e);
+        }
+    }
+    /**
+     * Handles game over state.
+     */
+   public void handleGameOver() {
+
+       if (!scoreSaved) {
+           saveScoreToLeaderboard();
+           scoreSaved = true;
+       }
+        viewGuiController.gameOver();
+    }
+    //ui updates
+    /**
+     * Updates the next brick preview in the UI.
+     */
+    private void updateNextBrickPreview() {
+        viewGuiController.updateNextShapesPreview(board.getViewData().getNextBricksData());
+    }
+    /**
+     * Refreshes the game display.
+     */
+    private void refreshGameDisplay() {
+        viewGuiController.refreshGameBackground(board.getBoardMatrix());
+    }
+
+    //LEADERBOARD
+    /**
+     * Saves the current score to the leaderboard.
+     */
+    public void saveScoreToLeaderboard() {
+
+      IntegerProperty finalScore =board.getScore().scoreProperty();
+        try {
+            ScoreEntry entry = createScoreEntry();
+            leaderboardManager.saveEntry(entry);
+        } catch (Exception e) {
+            handleLeaderboardError("Failed to save score to leaderboard", e);
+        }
+    }
+    /**
+     * Creates a ScoreEntry from the current game state.
+     *
+     * @return ScoreEntry with player information
+     */
+    private ScoreEntry createScoreEntry() {
+        IntegerProperty finalScore = board.getScore().scoreProperty();
+        return new ScoreEntry(playerName, finalScore, gameMode);
+    }
+    //GHOST PIECE
+    /**
+     * Gets the ghost drop distance for the current brick.
+     *
+     * @param brick The current brick data
+     * @return Distance the ghost piece should drop
+     */
+    public int getGhostDrop(ViewData brick) {
+        try {
+            return ghostPieceManager.getGhostDropDistance(brick);
+        } catch (Exception e) {
+            handleGameError("Error calculating ghost drop distance", e);
+            return 0;
+        }
+    }
+    //ERROR HANDLING
+    /**
+     * Logs an error with a given context prefix.
+     *
+     * @param context   the source or category of the error (for example "LEADERBOARD", "INITIALIZATION")
+     * @param message   the error message
+     * @param exception the exception that occurred, may be null
+     */
+    private void handleError(String context, String message, Exception exception) {
+        System.err.println(context + " ERROR: " + message);
+        if (exception != null) {
+            exception.printStackTrace();
+        }
+    }
+    /**
+     * Handles game-related errors with logging and recovery.
+     *
+     * @param message The error message
+     * @param exception The exception that occurred
+     */
+    private void handleGameError(String message, Exception exception) {
+        handleError("GAME ERROR:", message, exception);
+
+    }
+    /**
+     * Handles leaderboard-related errors.
+     *
+     * @param message The error message
+     * @param exception The exception that occurred
+     */
+    private void handleLeaderboardError(String message, Exception exception) {
+        handleError("LEADERBOARD", message, exception);
+
+    }
+    /**
+     * Handles initialization errors.
+     *
+     * @param message The error message
+     * @param exception The exception that occurred
+     */
+    private void handleInitializationError(String message, Exception exception) {
+        handleError("INITIALIZATION", message, exception);
+
+    }
 }

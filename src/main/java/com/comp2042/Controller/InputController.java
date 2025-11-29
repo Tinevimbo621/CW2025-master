@@ -107,12 +107,22 @@ public class InputController {
     }
 
 
-    /**
-     * SYSTEM KEYS (always work even when paused)
-     */
     private void handleSystemKeys(KeyEvent keyEvent) {
-        if (keyEvent.getCode() == KeyCode.N) {
+        KeyCode code = keyEvent.getCode();
+
+        if (code == KeyCode.N) {
             guiController.newGame();
+        }
+        else if (code == KeyCode.P) {
+            togglePause();
+        }
+    }
+
+    private void togglePause() {
+        if (guiController.isPaused()) {
+            guiController.resumeGameDirect();
+        } else {
+            guiController.pauseGameDirect();
         }
     }
 
