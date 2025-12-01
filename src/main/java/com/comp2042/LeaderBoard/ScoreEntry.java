@@ -61,9 +61,24 @@ public class ScoreEntry {
         return score.get();
     }
     /**
-     * @return the game mode associated with this score
+     * Retrieves the game mode associated with this score entry.
+     * <p>
+     * This method acts as the standard getter for the {@code "mode"} property,
+     * ensuring compatibility with the {@code PropertyValueFactory} used in the JavaFX {@code TableColumn}.
+     *
+     * @return the game mode (e.g., "Sprint", "Marathon","Ultrs") as a string
      */
-
+    public String getMode() {
+        return gameMode;
+    }
+    /**
+     * Retrieves the internal game mode field.
+     * <p>
+     * This method is retained for compatibility with existing internal code that may reference
+     * the {@code gameMode} field directly. It serves the same function as {@code getMode()}.
+     *
+     * @return the game mode as a string
+     */
     public String getGameMode() {
         return gameMode;
     }

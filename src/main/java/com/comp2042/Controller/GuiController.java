@@ -58,6 +58,7 @@ public class GuiController implements Initializable {
     @FXML private GridPane brickPanel;
     @FXML private VBox nextBricksPanel;
     @FXML private Label scoreLabel ;
+    @FXML private Label levelLabeltext;
     @FXML private Label levelLabel;
     @FXML private Button pauseButton ;
     @FXML private StackPane rootPane;
@@ -206,7 +207,23 @@ public class GuiController implements Initializable {
     public void requestFocus() {
         gamePanel.requestFocus();
     }
-
+    /**
+     * Retrieves the {@code Label} node that displays the static "Level:" text.
+     * <p>
+     * This is the decorative or descriptive label often used as a title or prefix for the level value.
+     *
+     * @return the JavaFX Label component displaying the static "Level" text
+     */
+    public Label getLevelLabelText() {
+        return levelLabeltext;
+    }
+    /**
+     * Retrieves the {@code Label} node that displays the current level number.
+     * <p>
+     * This is the dynamic text element whose content is typically bound to the game's level property.
+     *
+     * @return the JavaFX Label component showing the current level value
+     */
     public Label getLevelLabel() {
         return levelLabel;
     }

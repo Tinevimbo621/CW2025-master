@@ -21,6 +21,7 @@
                 <TableColumn fx:id="colRank" text="Rank" prefWidth="80"/>
                 <TableColumn fx:id="colName" text="Name" prefWidth="200"/>
                 <TableColumn fx:id="colScore" text="Score" prefWidth="150"/>
+                <TableColumn fx:id="colMode" text="Mode" prefWidth="150"/>
                 <TableColumn fx:id="colDate" text="Date" prefWidth="150"/>
             </columns>
         </TableView>

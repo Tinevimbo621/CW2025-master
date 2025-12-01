@@ -250,8 +250,10 @@ public class MainMenuController {
 
         if (mode.hasTimer()) {
             setupTimerFeature(guiController, root, gameController);
+            guiController.getLevelLabelText().setVisible(false);
             guiController.getLevelLabel().setVisible(false);
         }else {
+            guiController.getLevelLabelText().setVisible(true);
             guiController.getLevelLabel().setVisible(true);
         }
         if (mode.hasLineCounter()) {

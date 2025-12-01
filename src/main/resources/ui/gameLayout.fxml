@@ -25,10 +25,10 @@
                <Button fx:id="pauseButton" onAction="#pauseGame" styleClass="pause-button" text="Pause" />
                <Button fx:id="mainmenuButton" onAction="#mainMenu" prefHeight="40.0" prefWidth="106.0" styleClass="pause-button" text="Quit" />
                 <Label styleClass="nextBrickLabel" text="Hold" />
-                <GridPane fx:id="holdPanel" prefHeight="100" prefWidth="100" style="-fx-border-color: white; -fx-border-width: 2;" />
+                <GridPane fx:id="holdPanel" prefHeight="100" prefWidth="100" styleClass="nextBrick" />
 
-                <Label styleClass="scoreClass" text="Level:" />
-                <Label fx:id="levelLabel" styleClass="scoreClass" text="1" visible="false" />
+                <Label fx:id="levelLabeltext" styleClass="scoreClass" text="Level:"  visible="false" />
+                <Label fx:id="levelLabel" styleClass="scoreClass" text="1" />
             </VBox>
 
 
@@ -57,7 +57,7 @@
 
           <Label styleClass="nextBrickLabel" text="Next:" />
 
-          <VBox fx:id="nextBricksPanel" alignment="CENTER" prefHeight="100" prefWidth="100" spacing="20" style="-fx-border-color: white; -fx-border-width: 2;">
+          <VBox fx:id="nextBricksPanel" alignment="CENTER" prefHeight="100" prefWidth="100" spacing="20" styleClass="nextBrick">
 
 
           </VBox>

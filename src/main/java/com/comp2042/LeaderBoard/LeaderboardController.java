@@ -34,6 +34,7 @@ public class LeaderboardController {
     @FXML private TableColumn<ScoreEntry, Number> colRank;
     @FXML private TableColumn<ScoreEntry, String> colName;
     @FXML private TableColumn<ScoreEntry, Number> colScore;
+    @FXML private TableColumn<ScoreEntry, String> colMode;
     @FXML private TableColumn<ScoreEntry, String> colDate;
 
     private LeaderboardManager manager = new LeaderboardManager();
@@ -53,6 +54,8 @@ public class LeaderboardController {
         // Simple mappings to ScoreEntry fields
         colName.setCellValueFactory(new PropertyValueFactory<>("playerName"));
         colScore.setCellValueFactory(new PropertyValueFactory<>("score"));
+        colMode.setCellValueFactory(new PropertyValueFactory<>("mode"));
+
 
         // Convert LocalDateTime to formatted string
         colDate.setCellValueFactory(cell ->
