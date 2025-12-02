@@ -1,4 +1,4 @@
-package com.comp2042.Controller;
+package com.comp2042.controller;
 
 import com.comp2042.LeaderBoard.ClearRow;
 import com.comp2042.model.Board;

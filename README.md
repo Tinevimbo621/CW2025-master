@@ -8,6 +8,7 @@ A full **JavaFX-based Tetris game** built for COMP2042, featuring multiple game 
 ##  Table of Contents
 
 * **[Introduction](#-tetris-game--comp2042-coursework)**
+* **[Github Repository](#-github-repo)**
 * **[Environment Setup](#-environment-setup)**
 * **[Project Setup](#️-project-setup-intellij)**
 * **[Compile & Run](#️-compile--run)**
@@ -16,6 +17,13 @@ A full **JavaFX-based Tetris game** built for COMP2042, featuring multiple game 
 * **[Unexpected Problems & Solutions](#-unexpected-problems--solutions)**
 * **[How to Run Tests](#-how-to-run-tests)**
 * **[Author](#-author)**
+
+## Introduction 
+* This project is a complete JavaFX-based implementation of Tetris for the COMP2042 module at the University of Nottingham Malaysia.
+It focuses on maintaining and extending the original codebase, introducing multiple game modes, adaptive difficulty, a ghost piece feature, leaderboard tracking, and a modular MVC architecture to improve readability, testability, and maintainability.
+
+## Github Repository
+* https://github.com/Tinevimbo621/CW2025-master
 
 ## Recommended IDEs
 * IntelliJ IDEA 2023 3+
@@ -53,7 +61,7 @@ The project uses JavaFX for the graphical interface.
 
 1.  **Clone or import the project:**
     ```bash
-    git clone <https://github.com/Tinevimbo621/CW2025-master>
+    git clone https://github.com/Tinevimbo621/CW2025-master
     ```
 2. ### IDE Setup & Configuration
 
@@ -112,7 +120,6 @@ This project uses Maven for dependency management, build execution, and running 
 
 ### 1. Run with Maven (Recommended)
 
-This is the simplest and cleanest way because the JavaFX Maven Plugin handles all modules automatically.
 
 * **Clean and Run:**
     ```bash
@@ -185,7 +192,7 @@ Below is a clear, assessable breakdown of which features are implemented.
     *  **Countdown timer:** 120-second global timer for the entire session.
     * **Continuous play:** No line targets; gameplay flows until timer ends.
 * **Marathon Mode**
-* **Continuous play:** No line targets; gameplay flows until timer ends.
+* **Endless play:**No timer .
 *  **Adaptive speed:** Falling speed increases as levels go up.
 *  **Level increase:** Level increases with every 1000 points earned.
 
@@ -200,23 +207,21 @@ Below is a clear, assessable breakdown of which features are implemented.
 * **Level-up pop-ups:** Animated UI indicator for each level progression.
 
 ####  Architecture
-* **MVC structure:** Separates game logic, rendering, and UI event control.
-* **Modular components:** Dedicated classes handle movement, ghost logic, timers.
-* **Javadoc documentation:** Key classes fully documented for readability.
+* MVC with modular components
+* Javadoc documentation
+* Over 30 unit tests covering core subsystems
 
 ####  Unit Testing
 * **GhostPieceManager tests:** Validates ghost landing logic for all shapes.
 *  **SimpleBoard tests:** Covers row clearing, spawning, merging, and board logic.
 *  **BrickMover tests:** Ensures movement rules and collision detection behave correctly.
 *  **GameController tests:** High-level behaviour tested via mocks and stubs.
-*  **40+ test cases:** Comprehensive coverage across major subsystems.
+*  **30+ test cases:** Comprehensive coverage across major subsystems.
 
 ---
 
 
 ###  Not Implemented
-
-These features were not required by coursework specifications and have not been added:
 
 
 * **Online leaderboard:** No persistent data saving or global scoring comparison.
@@ -300,7 +305,7 @@ The process of decoupling the codebase successfully eliminated several key issue
 
 The final codebase:
 * **Follows MVC** with clear separation of concerns.
-* Is **fully testable** (with over 40 unit tests) due to logic being decoupled from the UI.
+* Is **fully testable** (with over 30 unit tests) due to logic being decoupled from the UI.
 * Is modular and highly **maintainable** and supports multiple game modes.
 
 ## Unexpected Problems & Solutions

@@ -8,7 +8,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<StackPane fx:id="rootPane" styleClass="rootPane" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.comp2042.Controller.GuiController">
+<StackPane fx:id="rootPane" styleClass="rootPane" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.comp2042.controller.GuiController">
 
   <!--Adding Hbox so my side panel and game lie next to each other-->
     <VBox alignment="CENTER" spacing="40">

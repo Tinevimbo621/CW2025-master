@@ -6,8 +6,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <?import java.net.URL?>
-<Pane fx:controller="com.comp2042.Controller.GuiController"
-      xmlns:fx="http://javafx.com/fxml">
+<Pane fx:controller="com.comp2042.controller.GuiController"
+      xmlns:fx="http://javafx.com/fxml">c
     <GridPane fx:id="brickPanel" vgap="1" hgap="1"/>
     <BorderPane styleClass="gameBoard" fx:id="gameBoard">
         <center>
