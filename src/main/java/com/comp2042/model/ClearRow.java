@@ -1,6 +1,5 @@
-package com.comp2042.LeaderBoard;
+package com.comp2042.model;
 
-import com.comp2042.model.MatrixOperations;
 /**
  * Represents the result of a row-clear operation.
  * Stores how many lines were removed, the updated board matrix,

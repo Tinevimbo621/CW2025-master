@@ -37,7 +37,19 @@ public class GameRenderer {
         private Rectangle[][] displayMatrix;
         private Rectangle[][] ghostMatrix;
         private Rectangle[][] rectangles;
-
+    /**
+     * Constructs a new GameRenderer.
+     * <p>
+     * Initializes the renderer with the UI components and color mapping
+     * required to draw the game board, bricks, next piece previews, and held piece.
+     * </p>
+     *
+     * @param gamePanel the {@link GridPane} representing the main game board
+     * @param brickPanel the {@link GridPane} used to render individual bricks
+     * @param nextBricksPanel the {@link VBox} showing the upcoming bricks
+     * @param holdPanel the {@link GridPane} displaying the held brick
+     * @param colorMap an array of {@link Paint} objects used to color the bricks
+     */
         public GameRenderer(GridPane gamePanel, GridPane brickPanel,
                             VBox nextBricksPanel, GridPane holdPanel, Paint[] colorMap) {
             this.gamePanel = gamePanel;
@@ -221,6 +233,8 @@ public class GameRenderer {
     /**
      * Refreshes the brick display with new position data.
      * Updates brick position, colors, and ghost piece
+     * @param brick the {@link ViewData} object containing the brick's current state
+      * @param ghostDistance the distance from the current brick to where the ghost piece should appear
      */
   public void refreshBrick(ViewData brick, int ghostDistance) {
         updateBrickPosition(brick);

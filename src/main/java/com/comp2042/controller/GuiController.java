@@ -1,6 +1,7 @@
 package com.comp2042.controller;
 
-import com.comp2042.LeaderBoard.ClearRow;
+import com.comp2042.events.InputEventListener;
+import com.comp2042.model.ClearRow;
 import com.comp2042.model.DownData;
 import com.comp2042.model.ViewData;
 import com.comp2042.ui.GameOverPanel;
@@ -53,14 +54,15 @@ public class GuiController implements Initializable {
     /**
      * Test-friendly constructor.
      * When initUI=false → skips all JavaFX-dependent initialization.
-     */
+       * @param initUI if {@code true}, initializes the full JavaFX UI;
+       *               if {@code false}, skips UI initialization for testing
+       */
+
     public GuiController(boolean initUI) {
         if (!initUI) {
-            return; // Skip UI setup entirely → prevents Toolkit init
+            return;
         }
 
-        // If real app, run normal UI initialization here
-        // (but in your case initialization happens in initialize(), so leave empty)
     }
 
     // UI Constants
@@ -83,12 +85,24 @@ public class GuiController implements Initializable {
     @FXML private StackPane rootPane;
 
     //Dependencies
+    /** Listener for user input events. */
     private InputEventListener eventListener;
+
+    /** Panel that displays the held Tetris piece. */
     public GridPane holdPanel;
+
+    /** Reference to the main game controller. */
     private GameController gameController;
+
+    /** Controller handling user input. */
     private InputController inputController;
+
+    /** Handles navigation between different scenes */
     private SceneNavigator navigator;
+
+    /** Renderer responsible for drawing the game board and pieces. */
     public GameRenderer renderer;
+
 
     //Game State
     private IntegerProperty timeLeft;
@@ -307,7 +321,16 @@ public class GuiController implements Initializable {
     }
 
     //Game Lifecycle Methods
-
+    /**
+     * Initializes the game timer with a given time property and duration.
+     * <p>
+     * Binds the provided {@code timeLeftProperty} to the timer display and
+     * starts the game timer through {@link GameController} if available.
+     * </p>
+     *
+     * @param timeLeftProperty the JavaFX IntegerProperty representing the remaining time
+     * @param seconds the total number of seconds to set for the timer
+     */
     public void initializeTimer(IntegerProperty timeLeftProperty, int seconds){
         this.timeLeft = timeLeftProperty;
         if (gameController != null) {
@@ -526,6 +549,7 @@ public class GuiController implements Initializable {
     // ==================== NAVIGATION (Delegated to SceneNavigator) ====================
     /**
      * Navigate to main menu from button click.
+     * @param actionEvent the JavaFX event triggered by the button click
      */
     @FXML
     public void mainMenu(ActionEvent actionEvent) {
@@ -537,6 +561,7 @@ public class GuiController implements Initializable {
     }
     /**
      * Navigate to leaderboard from button click.
+     * @param actionEvent the JavaFX event triggered by the button click
      */
     @FXML
     public void leaderboard(ActionEvent actionEvent) {

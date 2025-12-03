@@ -1,7 +1,7 @@
 package com.comp2042.controller;
 
 import com.comp2042.model.Board;
-import com.comp2042.LeaderBoard.ClearRow;
+import com.comp2042.model.ClearRow;
 import com.comp2042.model.Score;
 import com.comp2042.model.ViewData;
 import org.junit.jupiter.api.BeforeEach;

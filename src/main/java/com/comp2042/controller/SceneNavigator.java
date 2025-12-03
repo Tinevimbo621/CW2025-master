@@ -20,7 +20,16 @@ public class SceneNavigator {
 
     private final String mainMenuFxml;
     private final String leaderboardFxml;
-
+    /**
+     * Constructs a SceneNavigator with the specified FXML file paths.
+     * <p>
+     * This constructor initializes the navigator with the locations of the main menu
+     * and leaderboard scenes, allowing scene transitions in the application.
+     * </p>
+     *
+     * @param mainMenuFxml the path to the main menu FXML file
+     * @param leaderboardFxml the path to the leaderboard FXML file
+     */
     public SceneNavigator(String mainMenuFxml, String leaderboardFxml) {
         this.mainMenuFxml = mainMenuFxml;
         this.leaderboardFxml = leaderboardFxml;
@@ -114,15 +123,30 @@ public class SceneNavigator {
         private final Scene scene;
         private final GuiController controller;
 
+        /**
+         * Constructs a new GameSceneData object.
+         *
+         * @param scene the JavaFX scene
+         * @param controller the {@link GuiController} controlling the scene
+         */
         public GameSceneData(Scene scene, GuiController controller) {
             this.scene = scene;
             this.controller = controller;
         }
-
+        /**
+         * Returns the JavaFX scene.
+         *
+         * @return the scene
+         */
         public Scene getScene() {
             return scene;
         }
 
+        /**
+         * Returns the controller associated with the scene.
+         *
+         * @return the {@link GuiController} instance
+         */
         public GuiController getController() {
             return controller;
         }

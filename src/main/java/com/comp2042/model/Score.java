@@ -10,6 +10,15 @@ import javafx.beans.property.SimpleIntegerProperty;
  * </p>
  */
 public final class Score {
+    /**
+     * Constructs a new Score instance.
+     * <p>
+     * Default constructor required for JavaFX.
+     * </p>
+     */
+    public Score() {
+        // Default constructor
+    }
     /** Points required to advance one level. */
     private static final int POINTS_PER_LEVEL = 1000;
     /** The current score as a JavaFX property. */

@@ -14,7 +14,6 @@ import javafx.scene.layout.VBox;
  * Provides options to return to the main menu or view the leaderboard.
  * The panel is initially hidden and should be made visible when the game ends.
  * </p>
- * </p>
  */
 
 public class GameOverPanel extends BorderPane {

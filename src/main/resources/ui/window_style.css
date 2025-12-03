@@ -172,3 +172,14 @@
     -fx-font-weight: bold;
     -fx-font-family: "Let's go Digital";
 }
+.neon-title {
+    -fx-font-size: 64px;
+    -fx-font-weight: bold;
+    -fx-fill: #00eaff; /* bright cyan */
+
+    /* Glow effect using dropshadow */
+    -fx-effect: dropshadow(gaussian, #00eaff, 35, 0.7, 0, 0),
+                dropshadow(gaussian, #00b7ff, 60, 0.6, 0, 0),
+                dropshadow(gaussian, #009dff, 90, 0.5, 0, 0);
+}
+

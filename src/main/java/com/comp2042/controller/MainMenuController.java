@@ -28,6 +28,15 @@ import java.net.URL;
  * All scene navigation is delegated to SceneNavigator.
  */
 public class MainMenuController {
+    /**
+     * Constructs a new MainMenuController instance.
+     * <p>
+     * Default constructor required for JavaFX.
+     * </p>
+     */
+    public MainMenuController() {
+        // Default constructor
+    }
     //FXML UI Components
     @FXML private ImageView backgroundImage;
     @FXML private Button marathonButton;

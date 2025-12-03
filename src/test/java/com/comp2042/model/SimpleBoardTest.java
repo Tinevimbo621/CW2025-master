@@ -1,6 +1,5 @@
 package com.comp2042.model;
 
-import com.comp2042.LeaderBoard.ClearRow;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

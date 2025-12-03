@@ -12,6 +12,7 @@ public interface BrickGenerator {
     /**
      * Returns the next brick from the generator queue.
      * @deprecated Replaced with queue-based next-bricks system.
+     * @return the next {@link Brick} from the generator queue
      */
     @Deprecated
     Brick getNextBrick();

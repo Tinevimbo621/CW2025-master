@@ -10,6 +10,11 @@ import javafx.scene.media.MediaPlayer;
  */
 
 public class SoundManager {
+    /** Private constructor to prevent instantiation of this utility class. */
+    private SoundManager() {
+        // Prevent instantiation
+    }
+
     /** MediaPlayer instance for background music. */
 
     private static MediaPlayer bgPlayer;

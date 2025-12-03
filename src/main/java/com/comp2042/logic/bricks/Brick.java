@@ -25,8 +25,7 @@ public interface Brick {
      *     <li>Use 4×4 matrices for consistent positioning</li>
      *     <li>Be a deep copy — callers must not be able to modify internal data</li>
      * </ul>
-     *
-     * @return a list of 4×4 int matrices representing each rotation state
+     *@return list of 2D matrices representing rotations.
      */
     List<int[][]> getShapeMatrix();
 }

@@ -1,9 +1,7 @@
 package com.comp2042.model;
 
-import com.comp2042.LeaderBoard.ClearRow;
 /**
  * Represents the core logic and state of a Tetris-like game board.
- * <p>
  * Implementations of this interface handle:
  * <ul>
  *     <li>Brick movement (down, left, right)</li>

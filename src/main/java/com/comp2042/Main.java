@@ -14,6 +14,16 @@ import java.net.URL;
  * </p>
  */
 public class Main extends Application {
+
+    /**
+     * Constructs a new Main instance.
+     * <p>
+     * Default constructor required for JavaFX.
+     * </p>
+     */
+    public Main() {
+        // Default constructor
+    }
     /**
      * Starts the JavaFX application by setting up the primary stage.
      *

@@ -11,6 +11,16 @@ import javafx.util.Duration;
  */
 public class GameTimerManager {
 
+    /**
+     * Constructs a new GameTimerManager instance.
+     * <p>
+     * Default constructor required for JavaFX.
+     * </p>
+     */
+    public GameTimerManager() {
+        // Default constructor
+    }
+
     private Timeline levelTimer;
     private Timeline gameLoopTimer;
     private IntegerProperty timeLeftProperty;

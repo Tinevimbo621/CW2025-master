@@ -1,5 +1,7 @@
-package com.comp2042.LeaderBoard;
+package com.comp2042.controller;
 
+import com.comp2042.LeaderBoard.LeaderboardManager;
+import com.comp2042.LeaderBoard.ScoreEntry;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.collections.*;
@@ -25,7 +27,15 @@ import java.util.List;
  * to return to the main menu.
  */
 public class LeaderboardController {
-
+    /**
+     * Constructs a new LeaderboardController instance.
+     * <p>
+     * Default constructor required for JavaFX.
+     * </p>
+     */
+    public LeaderboardController() {
+        // Default constructor
+    }
     private static final String MAIN_MENU_FXML = "ui/mainMenu.fxml";
     private static final double SCENE_WIDTH = 900.0;
     private static final double SCENE_HEIGHT = 800.0;
@@ -41,6 +51,7 @@ public class LeaderboardController {
     /**
      * Initializes the leaderboard table by configuring column mappings
      * and loading all stored score entries.
+     @throws IOException  for java.io.IOException
      */
     @FXML
     public void initialize() throws IOException {

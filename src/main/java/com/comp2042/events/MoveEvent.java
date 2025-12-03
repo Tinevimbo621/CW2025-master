@@ -1,4 +1,5 @@
-package com.comp2042.controller;
+package com.comp2042.events;
+
 /**
  * Represents a game action request such as move, rotate, or drop.
  * Contains the action type and the source that triggered it.

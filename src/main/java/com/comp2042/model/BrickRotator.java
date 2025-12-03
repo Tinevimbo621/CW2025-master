@@ -6,10 +6,19 @@ import com.comp2042.logic.bricks.Brick;
  *
  * <p>This class keeps track of the current rotation state of a brick
  * and provides utilities to rotate, preview the next rotation, and
- * retrieve the current shape matrix.</p>
+ * retrieve the current shape matrix.
+ * </p>
  */
 public class BrickRotator {
-
+    /**
+     * Constructs a new  BrickRotator instance.
+     * <p>
+     * Default constructor required for JavaFX.
+     * </p>
+     */
+    public BrickRotator() {
+        // Default constructor
+    }
     private Brick brick;
     private int currentShape = 0;
     /**

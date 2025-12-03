@@ -162,6 +162,64 @@ VS Code uses the `launch.json` file to manage run configurations, where the Java
         "vmArgs" : "--module-path \"C:/path/to/javafx-sdk/lib\" --add-modules javafx.controls,javafx.fxml,javafx.media"
         ```
 ## Project Structure
+COMP2042_TetrisFX/
+├─ README.md
+├─ Design.pdf
+├─ Javadoc/
+├─ Demo.mp4
+├─ StudentName_IDE_JavaVersion.zip
+└─ src/
+└─ main/
+└─ java/
+└─ com/
+└─ comp2042/
+├─ ui/
+│   ├─ Main.java
+│   ├─ GameOverPanel.java
+│   └─ NotificationPanel.java
+├─ controller/
+│   ├─ GuiController.java
+│   ├─ GameController.java
+│   ├─ MainMenuController.java
+│   ├─ LeaderboardController.java
+│   ├─ InputController.java
+│   ├─ SceneNavigator.java
+│   ├─ GameTimerManager.java
+│   ├─ GameRenderer.java
+│   ├─ BrickMover.java
+│   └─ GhostPieceManager.java
+├─ audio/
+│   └─ SoundManager.java
+├─ model/
+│   ├─ Board.java
+│   ├─ SimpleBoard.java
+│   ├─ ViewData.java
+│   ├─ DownData.java
+│   ├─ Score.java
+│   ├─ NextShapeInfo.java
+│   ├─ ClearRow.java
+│   └─ MatrixOperations.java
+├─ logic/
+│   └─ bricks/
+│       ├─ Brick.java
+│       ├─ IBrick.java
+│       ├─ JBrick.java
+│       ├─ LBrick.java
+│       ├─ OBrick.java
+│       ├─ SBrick.java
+│       ├─ TBrick.java
+│       ├─ ZBrick.java
+│       ├─ BrickGenerator.java
+│       └─ RandomBrickGenerator.java
+├─ leaderboard/
+│   ├─ LeaderboardManager.java
+│   └─ ScoreEntry.java
+└─ events/
+├─ MoveEvent.java
+├─ EventType.java
+├─ EventSource.java
+└─ InputEventListener.java
+ 
 
 ##  Features Summary
 

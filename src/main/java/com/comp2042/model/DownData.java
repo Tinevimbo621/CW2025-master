@@ -1,6 +1,5 @@
 package com.comp2042.model;
 
-import com.comp2042.LeaderBoard.ClearRow;
 /**
  * Immutable data container representing the result of a downward brick move.
  *
