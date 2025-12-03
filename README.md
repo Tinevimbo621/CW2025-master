@@ -7,20 +7,34 @@ A full **JavaFX-based Tetris game** built for COMP2042, featuring multiple game 
 
 ##  Table of Contents
 
-* **[Introduction](#-tetris-game--comp2042-coursework)**
-* **[Github Repository](#-github-repo)**
-* **[Environment Setup](#-environment-setup)**
-* **[Project Setup](#️-project-setup-intellij)**
-* **[Compile & Run](#️-compile--run)**
-* **[ Features Summary](#️-features-summary)**
-* **[ Refactoring Summary](#-refactoring-summary)**
-* **[Unexpected Problems & Solutions](#-unexpected-problems--solutions)**
-* **[How to Run Tests](#-how-to-run-tests)**
-* **[Author](#-author)**
 
-## Introduction 
-* This project is a complete JavaFX-based implementation of Tetris for the COMP2042 module at the University of Nottingham Malaysia.
-It focuses on maintaining and extending the original codebase, introducing multiple game modes, adaptive difficulty, a ghost piece feature, leaderboard tracking, and a modular MVC architecture to improve readability, testability, and maintainability.
+* [Introduction](#introduction)
+* [Github Repository](#github-repository)
+* [Environment Setup](#environment-setup)
+* [Project Setup](#project-setup)
+* [Compile & Run](#compile--run)
+* [Features Summary](#features-summary)
+* [Implemented but NOT Working Properly](#implemented-but-not-working-properly)
+* [Not Implemented](#not-implemented)
+* [Refactoring & Architecture Summary](#refactoring--architecture-summary)
+* [Newly Created Classes](#1-newly-created-classes)
+* [Modified Classes](#2-classes--heavily-modified--extended)
+* [Unexpected Problems & Solutions](#unexpected-problems--solutions)
+* [How to Run Tests](#how-to-run-tests)
+* [Author](#author)
+
+
+## Introduction
+This project is a complete JavaFX-based implementation of Tetris developed for the COMP2042 coursework.
+  The main focus was maintaining and extending the provided codebase through:
+* multiple game modes
+* adaptive difficulty
+* ghost piece support
+* hold piece implementation
+* leaderboard system
+* combo scoring
+* modular MVC architecture
+* decoupled rendering, input, logic, and audio subsystems
 
 ## Github Repository
 * https://github.com/Tinevimbo621/CW2025-master
@@ -161,65 +175,6 @@ VS Code uses the `launch.json` file to manage run configurations, where the Java
         ```json
         "vmArgs" : "--module-path \"C:/path/to/javafx-sdk/lib\" --add-modules javafx.controls,javafx.fxml,javafx.media"
         ```
-## Project Structure
-COMP2042_TetrisFX/
-├─ README.md
-├─ Design.pdf
-├─ Javadoc/
-├─ Demo.mp4
-├─ StudentName_IDE_JavaVersion.zip
-└─ src/
-└─ main/
-└─ java/
-└─ com/
-└─ comp2042/
-├─ ui/
-│   ├─ Main.java
-│   ├─ GameOverPanel.java
-│   └─ NotificationPanel.java
-├─ controller/
-│   ├─ GuiController.java
-│   ├─ GameController.java
-│   ├─ MainMenuController.java
-│   ├─ LeaderboardController.java
-│   ├─ InputController.java
-│   ├─ SceneNavigator.java
-│   ├─ GameTimerManager.java
-│   ├─ GameRenderer.java
-│   ├─ BrickMover.java
-│   └─ GhostPieceManager.java
-├─ audio/
-│   └─ SoundManager.java
-├─ model/
-│   ├─ Board.java
-│   ├─ SimpleBoard.java
-│   ├─ ViewData.java
-│   ├─ DownData.java
-│   ├─ Score.java
-│   ├─ NextShapeInfo.java
-│   ├─ ClearRow.java
-│   └─ MatrixOperations.java
-├─ logic/
-│   └─ bricks/
-│       ├─ Brick.java
-│       ├─ IBrick.java
-│       ├─ JBrick.java
-│       ├─ LBrick.java
-│       ├─ OBrick.java
-│       ├─ SBrick.java
-│       ├─ TBrick.java
-│       ├─ ZBrick.java
-│       ├─ BrickGenerator.java
-│       └─ RandomBrickGenerator.java
-├─ leaderboard/
-│   ├─ LeaderboardManager.java
-│   └─ ScoreEntry.java
-└─ events/
-├─ MoveEvent.java
-├─ EventType.java
-├─ EventSource.java
-└─ InputEventListener.java
- 
 
 ##  Features Summary
 
@@ -250,9 +205,9 @@ Below is a clear, assessable breakdown of which features are implemented.
     *  **Countdown timer:** 120-second global timer for the entire session.
     * **Continuous play:** No line targets; gameplay flows until timer ends.
 * **Marathon Mode**
-* **Endless play:**No timer .
-*  **Adaptive speed:** Falling speed increases as levels go up.
-*  **Level increase:** Level increases with every 1000 points earned.
+  * **Endless play**
+  *  **Adaptive speed:** Falling speed increases as levels go up.
+  *  **Level increase:** Level increases with every 1000 points earned.
 
 ####  UI & Rendering
 
@@ -266,7 +221,8 @@ Below is a clear, assessable breakdown of which features are implemented.
 
 ####  Architecture
 * MVC with modular components
-* Javadoc documentation
+* Comprehensive Javadoc documentation
+* Decoupled rendering, input, logic, and audio
 * Over 30 unit tests covering core subsystems
 
 ####  Unit Testing
@@ -277,7 +233,8 @@ Below is a clear, assessable breakdown of which features are implemented.
 *  **30+ test cases:** Comprehensive coverage across major subsystems.
 
 ---
-
+### Implemented but NOT Working Properly
+* None. All implemented features currently function as intended.
 
 ###  Not Implemented
 
@@ -292,39 +249,29 @@ Below is a clear, assessable breakdown of which features are implemented.
 
 ### Summary of Refactoring Process
 
-A primary goal of this project was to establish a highly modular, decoupled **Model-View-Controller (MVC)** architecture. The initial project shell provided basic UI infrastructure, but the core **Model** and **Logic** were missing. The refactoring process involved:
 
-1.  **Extraction**: Pulling complex responsibilities (movement, ghost calculation, timing) out of the main controller.
-2.  **Abstraction**: Introducing interfaces (`Board`, `InputEventListener`) to allow for dependency injection and mocking.
-3.  **Decoupling**: Ensuring game logic is entirely separate from JavaFX/UI rendering.
-
-The successful implementation of the game required the creation and integration of several core service classes, which are detailed below.
-
----
-
-### 1. Newly Created Classes (Core Implementation)
-
-These classes did **not** exist in the original project structure and were created from scratch to implement core features, services, and architectural separation.
+### 1. Newly Created Classes
 
 ####  Gameplay & Logic Services
-* **`BrickMover`**: Encapsulates all active brick manipulation logic (left, right, rotate, drop, hold) by delegating to the `Board`. **Goal:** Removes movement responsibility from `GameController`.
-* **`GhostPieceManager`**: Calculates the exact ghost landing height for the active brick. **Goal:** Isolates complex, iterative collision math, improving performance and testability.
-* **`GameTimerManager`**: Central timer system managing the gravity loop, mode countdowns, and adaptive speed logic. Includes global `pause`/`resume` control. **Goal:** Provides a single point for timer control and fixes race conditions.
+* **`BrickMover`**: Encapsulates all active brick movement & rotation
+* **`GhostPieceManager`**:Computes the landing position for the ghost piece
+* **`GameTimerManager`**: Centralized gravity loop and countdown timer system
 * **`ScoreEntry`**: Represents a single player's saved entry (name, score, mode).
-* **`LeaderboardManager`**: Handles the persistence layer: saving and loading scores via file storage. **Goal:** Decouples file I/O from game logic.
+* **`LeaderboardManager`**: File-based persistent score storage
 
 #### Rendering, UI, & Navigation
-* **`GameRenderer`**: A dedicated rendering utility that draws all game elements (board, active brick, ghost, preview, hold) onto the JavaFX `Canvas`. **Goal:** Removes all rendering code from `GuiController`.
-* **`SceneNavigator`**: Manages all scene switching (Main Menu → Game → Leaderboard). **Goal:** Centralizes Stage transitions, preventing duplicate loading logic.
-* **`MainMenuController` / `LeaderboardController`**: Dedicated UI controllers for their respective screens, handling navigation and display logic.
-* **`InputController`**: Centralizes raw keyboard event handling and maps keys to abstract game actions (`MoveEvent`). **Goal:** Decouples input logic from the UI thread and prevents "sticky" input.
+* **`GameRenderer`**: Draws board, active brick, ghost, hold, and preview
+* **`SceneNavigator`**: Handles all scene transitions (Menu → Game → Leaderboard)
+* **`MainMenuController`** Controls main menu screen
+* **`InputController`**: Maps raw keyboard input to high-level game actions
+* **`LeaderboardController`**:Controls leaderboard screen
 
 ####  Audio
 * **`SoundManager`**: A new audio service handling background music, sound effects, mute toggle, and volume. **Goal:** Modularizes audio to avoid mixing sound concerns with UI logic.
 
 ---
 
-### 2. ✔ Classes  Heavily Modified & Extended
+### 2. Classes  Heavily Modified & Extended
 
 These classes existed but were massively refactored and extended to implement the game's core functionality:
 
@@ -350,25 +297,9 @@ The creation of dedicated service classes was required to achieve clean **Separa
 | **`InputController`** | Input logic was tightly coupled to the UI thread, causing unresponsiveness and sticky input issues. |
 | **`LeaderboardManager`** | Required persistent, external file I/O for score saving. |
 
-### 4.  Bugs Fixed by the Refactor
-
-The process of decoupling the codebase successfully eliminated several key issues present in the initial structure:
-
-* **Hard drop double-scoring** was fixed by isolating the scoring logic into a single method in `GameController`.
-* **Timer not updating properly** was solved by centralizing control in `GameTimerManager`.
-* **Ghost piece too shallow / glitchy** was resolved by dedicating `GhostPieceManager` to the calculation.
-* **UI freezing** was eliminated by moving long-running logic out of the `GuiController`.
-
-###  Result of the Refactoring
-
-The final codebase:
-* **Follows MVC** with clear separation of concerns.
-* Is **fully testable** (with over 30 unit tests) due to logic being decoupled from the UI.
-* Is modular and highly **maintainable** and supports multiple game modes.
 
 ## Unexpected Problems & Solutions
 
-This section documents key issues encountered during development and the solutions implemented, often as a result of the refactoring process.
 
 | Problem | Cause | Fix Implemented |
 | :--- | :--- | :--- |
@@ -383,16 +314,24 @@ This section documents key issues encountered during development and the solutio
 
 ## How to Run Tests
 
-The project includes over 40 unit tests covering core subsystems (`BrickMover`, `SimpleBoard`, `GhostPieceManager`, `GameController`).
+The project includes over 30 unit tests covering core subsystems (`BrickMover`, `SimpleBoard`, `GhostPieceManager`, `GameController`).
 
 ### Using Maven (Command Line)
 Execute the following command in the project's root directory:
 ```bash
 mvn test
 ```
+* **Includes tests for:**
+* BrickMover
+
+* SimpleBoard
+
+* GhostPieceManager
+
+* GameController
 ## Author
 Florence Tinevimbo Chigwida
 
-COMP2042 Coursework — 2025
+COMP2042  — 2025/26
 
 University of Nottingham Malaysia
