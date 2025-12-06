@@ -9,11 +9,11 @@ A full **JavaFX-based Tetris game** built for COMP2042, featuring multiple game 
 
 
 * [Introduction](#introduction)
-* [Github Repository](#github-repository)
+* [GitHub Repository](#github-repository)
 * [Environment Setup](#environment-setup)
 * [Project Setup](#project-setup)
 * [Compile & Run](#compile--run)
-* [Features Summary](#features-summary)
+* [Implemented & Working Properly](#implemented--working-properly)
 * [Implemented but NOT Working Properly](#implemented-but-not-working-properly)
 * [Not Implemented](#not-implemented)
 * [Refactoring & Architecture Summary](#refactoring--architecture-summary)
